@@ -1,0 +1,212 @@
+import os
+import random
+from datetime import datetime
+
+import psycopg
+from flask import Flask, jsonify, request
+from flask_cors import CORS
+
+
+DATABASE_URL = os.environ.get("DATABASE_URL")
+TABLE_COUNT = 30
+
+
+def create_app():
+    app = Flask(__name__)
+    CORS(app, origins=os.environ.get("CORS_ORIGINS", "*").split(","))
+
+    @app.get("/api/health")
+    def health():
+        return jsonify({"status": "ok", "service": "cafe-fausse-api"})
+
+    @app.post("/api/newsletter")
+    def newsletter_signup():
+        payload = request.get_json(silent=True) or {}
+        name = (payload.get("name") or "").strip()
+        email = (payload.get("email") or "").strip().lower()
+        phone = (payload.get("phone") or "").strip() or None
+
+        if not name or not email or "@" not in email:
+            return jsonify({"message": "Please enter a valid name and email."}), 400
+
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO customers (customer_name, customer_email, phone_number, newsletter_signup)
+                    VALUES (%s, %s, %s, TRUE)
+                    ON CONFLICT (customer_email)
+                    DO UPDATE SET
+                        customer_name = EXCLUDED.customer_name,
+                        phone_number = COALESCE(EXCLUDED.phone_number, customers.phone_number),
+                        newsletter_signup = TRUE
+                    RETURNING customer_id;
+                    """,
+                    (name, email, phone),
+                )
+                customer_id = cur.fetchone()[0]
+            conn.commit()
+
+        return jsonify(
+            {
+                "message": "Thank you for signing up for the Cafe Fausse newsletter.",
+                "customerId": customer_id,
+            }
+        )
+
+    @app.post("/api/reservations")
+    def create_reservation():
+        payload = request.get_json(silent=True) or {}
+        name = (payload.get("name") or "").strip()
+        email = (payload.get("email") or "").strip().lower()
+        phone = (payload.get("phone") or "").strip() or None
+        time_slot_raw = (payload.get("timeSlot") or "").strip()
+        guest_count = payload.get("guestCount")
+        newsletter_signup = bool(payload.get("newsletterSignup"))
+
+        validation_error = validate_reservation_payload(name, email, time_slot_raw, guest_count)
+        if validation_error:
+            return jsonify({"message": validation_error}), 400
+
+        time_slot = datetime.fromisoformat(time_slot_raw)
+        guest_count = int(guest_count)
+
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT table_number FROM reservations WHERE time_slot = %s;",
+                    (time_slot,),
+                )
+                booked_tables = {row[0] for row in cur.fetchall()}
+                available_tables = [table for table in range(1, TABLE_COUNT + 1) if table not in booked_tables]
+
+                if not available_tables:
+                    return jsonify({"message": "That time slot is full. Please choose another time."}), 409
+
+                table_number = random.choice(available_tables)
+
+                cur.execute(
+                    """
+                    INSERT INTO customers (customer_name, customer_email, phone_number, newsletter_signup)
+                    VALUES (%s, %s, %s, %s)
+                    ON CONFLICT (customer_email)
+                    DO UPDATE SET
+                        customer_name = EXCLUDED.customer_name,
+                        phone_number = COALESCE(EXCLUDED.phone_number, customers.phone_number),
+                        newsletter_signup = customers.newsletter_signup OR EXCLUDED.newsletter_signup
+                    RETURNING customer_id;
+                    """,
+                    (name, email, phone, newsletter_signup),
+                )
+                customer_id = cur.fetchone()[0]
+
+                cur.execute(
+                    """
+                    INSERT INTO reservations (customer_id, time_slot, guest_count, table_number)
+                    VALUES (%s, %s, %s, %s)
+                    RETURNING reservation_id;
+                    """,
+                    (customer_id, time_slot, guest_count, table_number),
+                )
+                reservation_id = cur.fetchone()[0]
+            conn.commit()
+
+        return jsonify(
+            {
+                "message": "Reservation confirmed.",
+                "reservationId": reservation_id,
+                "customerId": customer_id,
+                "tableNumber": table_number,
+                "timeSlot": time_slot.isoformat(),
+            }
+        ), 201
+
+    @app.get("/api/customers")
+    def list_customers():
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT customer_id, customer_name, customer_email, phone_number, newsletter_signup
+                    FROM customers
+                    ORDER BY customer_id DESC;
+                    """
+                )
+                rows = cur.fetchall()
+
+        return jsonify(
+            [
+                {
+                    "customerId": row[0],
+                    "name": row[1],
+                    "email": row[2],
+                    "phone": row[3],
+                    "newsletterSignup": row[4],
+                }
+                for row in rows
+            ]
+        )
+
+    @app.get("/api/reservations")
+    def list_reservations():
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT r.reservation_id, c.customer_name, c.customer_email, r.time_slot,
+                           r.guest_count, r.table_number
+                    FROM reservations r
+                    JOIN customers c ON c.customer_id = r.customer_id
+                    ORDER BY r.reservation_id DESC;
+                    """
+                )
+                rows = cur.fetchall()
+
+        return jsonify(
+            [
+                {
+                    "reservationId": row[0],
+                    "customerName": row[1],
+                    "customerEmail": row[2],
+                    "timeSlot": row[3].isoformat(),
+                    "guestCount": row[4],
+                    "tableNumber": row[5],
+                }
+                for row in rows
+            ]
+        )
+
+    return app
+
+
+def get_connection():
+    if not DATABASE_URL:
+        raise RuntimeError("DATABASE_URL environment variable is required.")
+    return psycopg.connect(DATABASE_URL)
+
+
+def validate_reservation_payload(name, email, time_slot_raw, guest_count):
+    if not name:
+        return "Please enter your name."
+    if not email or "@" not in email:
+        return "Please enter a valid email address."
+    if not time_slot_raw:
+        return "Please select a reservation date and time."
+
+    try:
+        datetime.fromisoformat(time_slot_raw)
+    except ValueError:
+        return "Please select a valid reservation date and time."
+
+    try:
+        guest_count_value = int(guest_count)
+    except (TypeError, ValueError):
+        return "Please enter a valid guest count."
+
+    if guest_count_value < 1:
+        return "Guest count must be at least 1."
+
+    return None
+
+
+app = create_app()

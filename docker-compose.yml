@@ -1,0 +1,66 @@
+services:
+  ingress:
+    image: nginx:1.27-alpine
+    container_name: fausse_cafe_ingress
+    depends_on:
+      - frontend
+      - backend
+    ports:
+      - "80:80"
+    volumes:
+      - ./ingress/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - fausse_cafe_net
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: fausse_cafe_frontend
+    environment:
+      - VITE_API_BASE_URL=/api
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    expose:
+      - "5173"
+    networks:
+      - fausse_cafe_net
+
+  backend:
+    build:
+      context: ./backend
+    container_name: fausse_cafe_backend
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://cafe_user:cafe_password@db:5432/cafe_fausse
+      - CORS_ORIGINS=http://fausse-cafe.com,http://localhost
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/app
+    expose:
+      - "5000"
+    networks:
+      - fausse_cafe_net
+
+  db:
+    image: postgres:16-alpine
+    container_name: fausse_cafe_db
+    environment:
+      - POSTGRES_DB=cafe_fausse
+      - POSTGRES_USER=cafe_user
+      - POSTGRES_PASSWORD=cafe_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    expose:
+      - "5432"
+    networks:
+      - fausse_cafe_net
+
+networks:
+  fausse_cafe_net:
+
+volumes:
+  postgres_data:
+  frontend_node_modules:
