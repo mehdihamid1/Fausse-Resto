@@ -68,7 +68,7 @@ const menuSections = [
   {
     title: "Starters",
     items: [
-      ["Burrata & Fig", "Creamy burrata, mission figs, basil oil", "$16", "https://images.unsplash.com/photo-1588943211346-0908a1fb0b01?auto=format&fit=crop&w=120&q=70"],
+      ["Burrata & Fig", "Creamy burrata, mission figs, basil oil", "$16", "https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=120&q=70"],
       ["Mushroom Tartine", "Wild mushrooms, whipped ricotta, sourdough", "$14", "https://images.unsplash.com/photo-1476124369491-e7addf5db371?auto=format&fit=crop&w=120&q=70"],
       ["Citrus Beet Salad", "Roasted beets, orange, pistachio, herbs", "$13", "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=120&q=70"],
     ],
