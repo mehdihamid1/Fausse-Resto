@@ -8,6 +8,11 @@
   --color-input-border: #cfc7b8;
   --color-muted: #645d53;
   --color-accent: #9d2f26;
+  /* Accent variants tuned for WCAG AA: -strong backs buttons (white text on it),
+     -text is the accent used for small bold copy. Light theme passes at the base
+     accent, so both alias it here; the dark theme overrides them below. */
+  --color-accent-strong: #9d2f26;
+  --color-accent-text: #9d2f26;
   --color-gold: #f5c667;
   --color-footer-bg: #111111;
   --color-footer-text: #ffffff;
@@ -28,6 +33,11 @@
   --color-input-border: #4a4438;
   --color-muted: #b3a99a;
   --color-accent: #d6584e;
+  /* #d6584e gives only 3.9:1 under white button text and 4.2:1 as small text on
+     surfaces. Darken the button bg (~5.4:1 white-on-it) and lighten the text
+     accent (~5.4:1 on surface) so both clear AA. */
+  --color-accent-strong: #b8423a;
+  --color-accent-text: #e07069;
   --color-gold: #f5c667;
   --color-footer-bg: #0d0c0a;
   --color-footer-text: #ece7df;
@@ -55,6 +65,50 @@ select {
 
 button {
   cursor: pointer;
+}
+
+/* A single, consistent keyboard focus indicator. Components must not replace
+   this with outline:none and a weaker substitute. */
+:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* <main> takes focus programmatically on route change, so it shouldn't paint a
+   ring (the status regions are handled separately below). */
+main:focus,
+main:focus-visible {
+  outline: none;
+}
+
+/* "Skip to main content" link — offscreen until it receives keyboard focus. */
+.skip-link {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-text);
+  left: 12px;
+  padding: 10px 16px;
+  position: fixed;
+  top: -60px;
+  transition: top 0.15s ease;
+  z-index: 1000;
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+/* Per-page <h1>s carry the visual weight of the section <h2>s rather than the
+   oversized hero <h1>. */
+h1.page-title {
+  font-size: 2.2rem;
+  line-height: 1.15;
+  margin-bottom: 16px;
+}
+
+.section-heading h1.page-title {
+  margin-bottom: 0;
 }
 
 .site-header {
@@ -101,7 +155,7 @@ nav button {
 
 nav button.active {
   border-color: var(--color-accent);
-  color: var(--color-accent);
+  color: var(--color-accent-text);
 }
 
 .theme-toggle {
@@ -132,7 +186,7 @@ nav button.active {
 }
 
 .theme-labels .active {
-  color: var(--color-accent);
+  color: var(--color-accent-text);
 }
 
 .theme-labels .divider {
@@ -159,7 +213,6 @@ main {
 .chef-banner:hover,
 .chef-banner:focus-visible {
   filter: brightness(1.08);
-  outline: none;
 }
 
 .chef-banner-thumb {
@@ -264,8 +317,8 @@ h2 {
 .hero-actions button,
 .newsletter button,
 .form-panel button {
-  background: var(--color-accent);
-  border: 1px solid var(--color-accent);
+  background: var(--color-accent-strong);
+  border: 1px solid var(--color-accent-strong);
   border-radius: 6px;
   color: #fff;
   font-weight: 800;
@@ -366,7 +419,7 @@ h2 {
 }
 
 .review-card cite {
-  color: var(--color-accent);
+  color: var(--color-accent-text);
   font-size: 0.85rem;
   font-style: normal;
   font-weight: 800;
@@ -397,7 +450,7 @@ h2 {
 }
 
 .chef-specials-title {
-  color: var(--color-accent);
+  color: var(--color-accent-text);
   display: block;
   font-size: 1.3rem;
   font-weight: 800;
@@ -442,7 +495,7 @@ h2 {
 }
 
 .chef-special-row span {
-  color: var(--color-accent);
+  color: var(--color-accent-text);
   font-weight: 800;
   white-space: nowrap;
 }
@@ -610,6 +663,7 @@ select {
   border-radius: 6px;
   color: var(--color-text);
   font-weight: 700;
+  min-height: 44px; /* keep the tap target usable on narrow screens */
 }
 
 .calendar-day:hover:not(:disabled) {
@@ -625,8 +679,8 @@ select {
 }
 
 .calendar-day.selected {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
+  background: var(--color-accent-strong);
+  border-color: var(--color-accent-strong);
   color: #fff;
 }
 
@@ -658,7 +712,7 @@ select {
 }
 
 .reservation-notes li strong {
-  color: var(--color-accent);
+  color: var(--color-accent-text);
 }
 
 .reservation-notes li span {
@@ -764,6 +818,25 @@ select {
   margin: 0;
 }
 
+/* The success/error/confirmation boxes hardcode light greens and reds; in dark
+   mode swap in deep backgrounds with light text so they sit in the theme
+   (contrast stays well above AA). */
+:root[data-theme="dark"] .status.success {
+  background: #16301f;
+  color: #8fdfae;
+}
+
+:root[data-theme="dark"] .status.error,
+:root[data-theme="dark"] .availability-note.full {
+  background: #3a1a18;
+  color: #f1a9a2;
+}
+
+:root[data-theme="dark"] .reservation-confirmation dt,
+:root[data-theme="dark"] .confirmation-footnote {
+  color: #8fdfae;
+}
+
 .newsletter {
   background: #202c2c;
   color: #fff;
@@ -825,7 +898,6 @@ select {
 .gallery-tile:hover,
 .gallery-tile:focus-visible {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
-  outline: none;
   transform: scale(1.03);
 }
 
@@ -847,8 +919,7 @@ select {
 
 .gallery-strip button:hover,
 .gallery-strip button:focus-visible {
-  border-color: #9d2f26;
-  outline: none;
+  border-color: var(--color-accent);
 }
 
 .gallery-strip img {
@@ -1025,7 +1096,7 @@ select {
 }
 
 .owner-role {
-  color: var(--color-accent);
+  color: var(--color-accent-text);
   display: block;
   font-size: 0.85rem;
   font-weight: 800;
@@ -1188,5 +1259,23 @@ footer {
   footer {
     flex-direction: column;
     gap: 6px;
+  }
+}
+
+/* Respect users who ask for less motion: neutralize transitions/animations and
+   the gallery tile's hover scale. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .gallery-tile:hover,
+  .gallery-tile:focus-visible {
+    transform: none;
   }
 }

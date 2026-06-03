@@ -228,6 +228,8 @@ function getInitialTheme() {
 function App() {
   const [activePage, setActivePage] = useState("home");
   const [theme, setTheme] = useState(getInitialTheme);
+  const mainRef = useRef(null);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -238,15 +240,31 @@ function App() {
     }
   }, [theme]);
 
+  // Reflect the active page in the document title and, on navigation (but not
+  // the initial load), move focus into the main region so keyboard and
+  // screen-reader users land on the freshly rendered page rather than staying
+  // on the nav button they just clicked.
+  useEffect(() => {
+    const page = pages.find((p) => p.id === activePage);
+    document.title =
+      activePage === "home" ? "Cafe Fausse" : `${page ? page.label : "Cafe Fausse"} — Cafe Fausse`;
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    mainRef.current?.focus();
+  }, [activePage]);
+
   return (
     <div className="app">
+      <a className="skip-link" href="#main">Skip to main content</a>
       <Header
         activePage={activePage}
         setActivePage={setActivePage}
         theme={theme}
         setTheme={setTheme}
       />
-      <main>
+      <main id="main" ref={mainRef} tabIndex={-1}>
         {activePage === "home" && <Home setActivePage={setActivePage} />}
         {activePage === "menu" && <Menu />}
         {activePage === "reservations" && <Reservations />}
@@ -262,7 +280,7 @@ function Header({ activePage, setActivePage, theme, setTheme }) {
   return (
     <header className="site-header">
       <button className="brand" onClick={() => setActivePage("home")}>
-        <Utensils size={22} />
+        <Utensils size={22} aria-hidden="true" />
         <span>Cafe Fausse</span>
       </button>
       <nav aria-label="Primary navigation">
@@ -270,6 +288,7 @@ function Header({ activePage, setActivePage, theme, setTheme }) {
           <button
             key={page.id}
             className={activePage === page.id ? "active" : ""}
+            aria-current={activePage === page.id ? "page" : undefined}
             onClick={() => setActivePage(page.id)}
           >
             {page.label}
@@ -290,13 +309,13 @@ function ThemeToggle({ theme, setTheme }) {
       aria-label={`Switch to ${next} mode`}
       title={`Switch to ${next} mode`}
     >
-      <Sun size={15} />
+      <Sun size={15} aria-hidden="true" />
       <span className="theme-labels">
         <span className={theme === "light" ? "active" : ""}>Light</span>
         <span className="divider">|</span>
         <span className={theme === "dark" ? "active" : ""}>Dark</span>
       </span>
-      <Moon size={15} />
+      <Moon size={15} aria-hidden="true" />
     </button>
   );
 }
@@ -312,7 +331,7 @@ function ChefBanner({ setActivePage }) {
       <img className="chef-banner-thumb" src={pick.thumb} alt={pick.name} />
       <div className="chef-banner-text">
         <span className="chef-banner-eyebrow">
-          <Star size={14} /> Tonight's Chef's Pick
+          <Star size={14} aria-hidden="true" /> Tonight's Chef's Pick
         </span>
         <strong>{pick.name}</strong>
         <p>{pick.description}</p>
@@ -364,20 +383,20 @@ function Home({ setActivePage }) {
       </section>
 
       <section className="info-grid">
-        <InfoCard icon={<MapPin />} title="Location" text="123 Grand Avenue, New York, NY" />
-        <InfoCard icon={<Clock />} title="Hours" text="Tue-Sun, 5:00 PM - 11:00 PM" />
-        <InfoCard icon={<Star />} title="Awards" text="Best New Dining Room and Top Wine List finalist" />
+        <InfoCard icon={<MapPin aria-hidden="true" />} title="Location" text="123 Grand Avenue, New York, NY" />
+        <InfoCard icon={<Clock aria-hidden="true" />} title="Hours" text="Tue-Sun, 5:00 PM - 11:00 PM" />
+        <InfoCard icon={<Star aria-hidden="true" />} title="Awards" text="Best New Dining Room and Top Wine List finalist" />
       </section>
 
       <section className="page-section awards-section">
         <div className="section-heading">
-          <Award />
+          <Award aria-hidden="true" />
           <h2>Awards &amp; Praise</h2>
         </div>
         <div className="awards-grid">
           {awards.map((award) => (
             <article className="award-card" key={award.title}>
-              <Star size={20} />
+              <Star size={20} aria-hidden="true" />
               <strong>{award.title}</strong>
               <p>{award.detail}</p>
             </article>
@@ -412,13 +431,13 @@ function Menu() {
   return (
     <section className="page-section">
       <div className="section-heading">
-        <MenuIcon />
-        <h2>Menu</h2>
+        <MenuIcon aria-hidden="true" />
+        <h1 className="page-title">Menu</h1>
       </div>
 
       <div className="chef-specials">
         <div className="chef-specials-heading">
-          <Star />
+          <Star aria-hidden="true" />
           <div>
             <span className="chef-specials-title">Chef's Specials</span>
             <p>Seasonal selections from Chef Antonio Rossi, available while they last.</p>
@@ -483,7 +502,7 @@ function Calendar({ year, month, monthData, loading, selectedDate, onSelect, onC
           disabled={!canGoPrev}
           aria-label="Previous month"
         >
-          <ChevronLeft size={18} />
+          <ChevronLeft size={18} aria-hidden="true" />
         </button>
         <strong aria-live="polite">{monthLabel}</strong>
         <button
@@ -492,7 +511,7 @@ function Calendar({ year, month, monthData, loading, selectedDate, onSelect, onC
           onClick={() => onChangeMonth(1)}
           aria-label="Next month"
         >
-          <ChevronRight size={18} />
+          <ChevronRight size={18} aria-hidden="true" />
         </button>
       </div>
       <div className="calendar-weekdays">
@@ -679,8 +698,8 @@ function Reservations() {
     <section className="page-section split">
       <div>
         <div className="section-heading">
-          <CalendarCheck />
-          <h2>Reservations</h2>
+          <CalendarCheck aria-hidden="true" />
+          <h1 className="page-title">Reservations</h1>
         </div>
         <p className="lead">
           Choose a date and time. The system checks 30 available tables and confirms your reservation when a table is open.
@@ -720,8 +739,13 @@ function Reservations() {
           Phone
           <input name="phone" value={form.phone} onChange={updateField} />
         </label>
-        <div className="field-group">
-          <span className="field-label">Date</span>
+        <div
+          className="field-group"
+          role="group"
+          aria-labelledby="date-group-label"
+          aria-describedby="date-group-hint"
+        >
+          <span className="field-label" id="date-group-label">Date</span>
           <Calendar
             year={view.year}
             month={view.month}
@@ -732,7 +756,7 @@ function Reservations() {
             onChangeMonth={changeMonth}
             canGoPrev={canGoPrev}
           />
-          <small className="field-hint">Open Tue&ndash;Sun, 5:00&ndash;10:00 PM seating. Closed Mondays.</small>
+          <small className="field-hint" id="date-group-hint">Open Tue&ndash;Sun, 5:00&ndash;10:00 PM seating. Closed Mondays.</small>
         </div>
         <label>
           Time
@@ -773,9 +797,10 @@ function Reservations() {
             max="10"
             value={form.guestCount}
             onChange={updateField}
+            aria-describedby="guests-hint"
             required
           />
-          <small className="field-hint">Up to 10 guests online</small>
+          <small className="field-hint" id="guests-hint">Up to 10 guests online</small>
         </label>
         {Number(form.guestCount) > 10 && (
           <p className="group-booking-note">
@@ -844,7 +869,7 @@ function About() {
     <>
       <section className="page-section split">
         <div>
-          <h2>About Us</h2>
+          <h1 className="page-title">About Us</h1>
           <p className="lead">
             Cafe Fausse opened in 2010 with a simple idea: pair the precision of a
             fine-dining kitchen with the warmth of a neighborhood table. The name -
@@ -869,7 +894,7 @@ function About() {
             alt="Cafe Fausse dining room"
           />
           <div className="about-quote">
-            <Star size={18} />
+            <Star size={18} aria-hidden="true" />
             <p>"Refined cooking, warm hospitality, and a menu that feels special without feeling distant."</p>
             <strong>— City Dining Review</strong>
           </div>
@@ -878,7 +903,7 @@ function About() {
 
       <section className="page-section owners">
         <div className="section-heading">
-          <Users />
+          <Users aria-hidden="true" />
           <h2>Meet the Owners</h2>
         </div>
         <div className="owners-grid">
@@ -891,7 +916,7 @@ function About() {
               <ul className="owner-achievements">
                 {owner.achievements.map((achievement) => (
                   <li key={achievement}>
-                    <Award size={15} />
+                    <Award size={15} aria-hidden="true" />
                     <span>{achievement}</span>
                   </li>
                 ))}
@@ -905,34 +930,66 @@ function About() {
 }
 
 function Lightbox({ items, index, onClose, onPrev, onNext }) {
+  const open = index !== null;
+  const overlayRef = useRef(null);
+  const closeRef = useRef(null);
+
+  // Lock scroll and manage focus across the open/close lifecycle only (not on
+  // each image change): focus the close button on open, and restore focus to
+  // the triggering tile on close.
   useEffect(() => {
-    function handleKey(e) {
-      if (e.key === "Escape") onClose();
-      if (e.key === "ArrowLeft") onPrev();
-      if (e.key === "ArrowRight") onNext();
-    }
-    document.addEventListener("keydown", handleKey);
+    if (!open) return undefined;
+    const previouslyFocused = document.activeElement;
+    closeRef.current?.focus();
     document.body.style.overflow = "hidden";
     return () => {
-      document.removeEventListener("keydown", handleKey);
       document.body.style.overflow = "";
+      if (previouslyFocused instanceof HTMLElement) previouslyFocused.focus();
     };
-  }, [onClose, onPrev, onNext]);
+  }, [open]);
 
-  if (index === null) return null;
+  // Esc closes, arrows navigate, and Tab is trapped within the dialog.
+  useEffect(() => {
+    if (!open) return undefined;
+    function handleKey(e) {
+      if (e.key === "Escape") {
+        onClose();
+      } else if (e.key === "ArrowLeft") {
+        onPrev();
+      } else if (e.key === "ArrowRight") {
+        onNext();
+      } else if (e.key === "Tab") {
+        const focusable = overlayRef.current?.querySelectorAll("button");
+        if (!focusable || focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [open, onClose, onPrev, onNext]);
+
+  if (!open) return null;
   const item = items[index];
 
   return (
-    <div className="lightbox-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label={item.label}>
-      <button className="lightbox-close" onClick={onClose} aria-label="Close">
-        <X size={22} />
+    <div className="lightbox-overlay" ref={overlayRef} onClick={onClose} role="dialog" aria-modal="true" aria-label={item.label}>
+      <button className="lightbox-close" ref={closeRef} onClick={onClose} aria-label="Close">
+        <X size={22} aria-hidden="true" />
       </button>
       <button
         className="lightbox-nav lightbox-prev"
         onClick={(e) => { e.stopPropagation(); onPrev(); }}
         aria-label="Previous image"
       >
-        <ChevronLeft size={30} />
+        <ChevronLeft size={30} aria-hidden="true" />
       </button>
       <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
         <img src={item.url} alt={item.label} />
@@ -948,7 +1005,7 @@ function Lightbox({ items, index, onClose, onPrev, onNext }) {
         onClick={(e) => { e.stopPropagation(); onNext(); }}
         aria-label="Next image"
       >
-        <ChevronRight size={30} />
+        <ChevronRight size={30} aria-hidden="true" />
       </button>
     </div>
   );
@@ -960,8 +1017,8 @@ function Gallery() {
   return (
     <section className="page-section">
       <div className="section-heading">
-        <Camera />
-        <h2>Gallery</h2>
+        <Camera aria-hidden="true" />
+        <h1 className="page-title">Gallery</h1>
       </div>
       <p className="gallery-hint">Click any photo to browse in full screen</p>
       <div className="gallery-grid">
@@ -973,9 +1030,6 @@ function Gallery() {
               backgroundImage: `linear-gradient(180deg, rgba(24,31,31,0.08), rgba(24,31,31,0.75)), url(${item.url})`,
             }}
             onClick={() => setLightboxIndex(index)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => e.key === "Enter" && setLightboxIndex(index)}
             aria-label={`View ${item.label}`}
           >
             <span>{item.category}</span>
@@ -1038,33 +1092,41 @@ function Newsletter() {
     <section className="newsletter">
       <div>
         <div className="section-heading">
-          <Mail />
+          <Mail aria-hidden="true" />
           <h2>Newsletter</h2>
         </div>
         <p>Receive seasonal menu updates, event notes, and reservation announcements.</p>
       </div>
       <form onSubmit={submitNewsletter}>
-        <input
-          aria-label="Name"
-          placeholder="Name"
-          value={form.name}
-          onChange={(event) => setForm({ ...form, name: event.target.value })}
-          required
-        />
-        <input
-          aria-label="Email"
-          placeholder="Email"
-          type="email"
-          value={form.email}
-          onChange={(event) => setForm({ ...form, email: event.target.value })}
-          required
-        />
-        <input
-          aria-label="Phone"
-          placeholder="Phone optional"
-          value={form.phone}
-          onChange={(event) => setForm({ ...form, phone: event.target.value })}
-        />
+        <label>
+          Name
+          <input
+            name="name"
+            placeholder="Your name"
+            value={form.name}
+            onChange={(event) => setForm({ ...form, name: event.target.value })}
+            required
+          />
+        </label>
+        <label>
+          Email
+          <input
+            name="email"
+            type="email"
+            placeholder="you@example.com"
+            value={form.email}
+            onChange={(event) => setForm({ ...form, email: event.target.value })}
+            required
+          />
+        </label>
+        <label>
+          Phone (optional)
+          <input
+            name="phone"
+            value={form.phone}
+            onChange={(event) => setForm({ ...form, phone: event.target.value })}
+          />
+        </label>
         <button>Sign Up</button>
         {status && (
           <p
