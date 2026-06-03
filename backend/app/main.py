@@ -426,8 +426,10 @@ def validate_reservation_payload(name, email, time_slot_raw, guest_count):
     # Cafe Fausse seats on the hour, 5:00 PM - 10:00 PM, and is closed Mondays.
     if time_slot.weekday() == CLOSED_WEEKDAY:
         return "Cafe Fausse is closed on Mondays. Please choose another day."
-    if time_slot.hour not in OPEN_HOURS or time_slot.minute != 0:
-        return "Please choose an available seating time between 5:00 PM and 10:00 PM."
+    if time_slot.minute != 0:
+        return "Seatings are on the hour only. Please choose a time such as 5:00 PM, 9:00 PM, etc."
+    if time_slot.hour not in OPEN_HOURS:
+        return "Seatings are available from 5:00 PM to 10:00 PM. Please choose a valid time."
 
     try:
         guest_count_value = int(guest_count)

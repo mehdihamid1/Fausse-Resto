@@ -122,16 +122,101 @@ SELECT * FROM customers;
 SELECT * FROM reservations;
 ```
 
+## Test scenarios
+
+Four test scenarios are included. Each test script shows the database state
+**before** and **after** the action. Rollback scripts are separate so test data
+can be inspected before it is removed.
+
+All scripts accept optional environment variables to target a different
+environment:
+
+```bash
+BASE_URL=http://staging.fausse-cafe.com ./scripts/test_02_reservation.sh
+DB_CONTAINER=my_db ./scripts/test_04_limit.sh
+```
+
+---
+
+### Test 01 — Visual walkthrough (manual)
+
+Open the site and navigate through all five pages.
+
+```text
+http://fausse-cafe.com
+```
+
+Verify: Home → Menu → Reservations → About Us → Gallery. Check the reservation
+form, newsletter signup, gallery lightbox, and light/dark mode toggle.
+
+---
+
+### Test 02 — Single reservation
+
+Creates one booking via the API, verifies the response and checks the database.
+
+```bash
+# Run
+./scripts/test_02_reservation.sh
+
+# Rollback
+./scripts/test_02_reservation_rollback.sh
+```
+
+Expected result: HTTP 201, reservation row in `reservations`, customer row in
+`customers` with `newsletter_signup = f`.
+
+---
+
+### Test 03 — Newsletter signup
+
+Signs up a customer for the newsletter via the API and verifies the database.
+
+```bash
+# Run
+./scripts/test_03_newsletter.sh
+
+# Rollback
+./scripts/test_03_newsletter_rollback.sh
+```
+
+Expected result: HTTP 200, customer row in `customers` with
+`newsletter_signup = t`.
+
+---
+
+### Test 04 — Reservation limit (30 tables)
+
+Fills all 30 tables for a time slot directly in the database, then attempts a
+31st booking via the API to confirm it is rejected.
+
+```bash
+# Run
+./scripts/test_04_limit.sh
+
+# Rollback
+./scripts/test_04_limit_rollback.sh
+```
+
+Expected result: availability endpoint reports `availableTables: 0`, the 31st
+booking attempt returns HTTP 409 with "That time slot is full."
+
+---
+
 ## Project structure
 
 ```text
 cafe-fausse/
   docker-compose.yml
-  ingress/        # Nginx config for fausse-cafe.com
-  frontend/       # React + Vite app (src/, public/images/)
-  backend/        # Flask app (app/main.py)
-  database/       # init.sql schema
-  scripts/        # add-local-dns.sh helper
+  ingress/              # Nginx config for fausse-cafe.com
+  frontend/             # React + Vite app (src/, public/images/)
+  backend/              # Flask app (app/main.py)
+  database/             # init.sql schema
+  scripts/
+    add-local-dns.sh
+    test_02_reservation.sh          test_02_reservation_rollback.sh
+    test_03_newsletter.sh           test_03_newsletter_rollback.sh
+    test_04_limit.sh                test_04_limit_rollback.sh
   README.md
   ai-tooling.md
   staging.md
