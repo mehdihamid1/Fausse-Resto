@@ -251,6 +251,84 @@ h2 {
   margin-bottom: 0;
 }
 
+.chef-specials {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-accent);
+  border-radius: 8px;
+  margin-bottom: 28px;
+  padding: 24px;
+}
+
+.chef-specials-heading {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.chef-specials-heading svg {
+  color: var(--color-accent);
+}
+
+.chef-specials-title {
+  color: var(--color-accent);
+  display: block;
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.chef-specials-heading p {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.chef-specials-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.chef-special-card {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chef-special-card img {
+  display: block;
+  height: 150px;
+  object-fit: cover;
+  width: 100%;
+}
+
+.chef-special-body {
+  padding: 14px 16px;
+}
+
+.chef-special-row {
+  align-items: baseline;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.chef-special-row span {
+  color: var(--color-accent);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.chef-special-body p {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 8px 0 0;
+}
+
 .menu-layout {
   display: grid;
   gap: 20px;
@@ -285,7 +363,7 @@ h2 {
 
 .menu-item span {
   font-weight: 800;
-  white-space: nowrap;
+  text-align: right;
 }
 
 .split {
@@ -668,7 +746,8 @@ footer {
   .info-grid,
   .menu-layout,
   .gallery-grid,
-  .owners-grid {
+  .owners-grid,
+  .chef-specials-grid {
     grid-template-columns: 1fr;
   }
 

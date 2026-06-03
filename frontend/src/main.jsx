@@ -73,29 +73,87 @@ const galleryItems = [
   },
 ];
 
+// Signature dishes from the chef. The first entry is also featured on the home
+// page banner, so it uses a bundled local image to stay reliable in the demo.
+const chefSpecials = [
+  {
+    name: "A5 Wagyu & Black Truffle",
+    description:
+      "Seared Japanese A5 wagyu, shaved Perigord black truffle, pommes puree, and a 24-hour bordelaise reduction.",
+    price: "$58",
+    thumb: "/images/gallery-seasonal-plate.png",
+  },
+  {
+    name: "Butter-Poached Maine Lobster",
+    description:
+      "Brown-butter poached lobster tail, sauce americaine, charred leek, and oscietra caviar.",
+    price: "$52",
+    thumb: "https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=600&q=70",
+  },
+  {
+    name: "Duck a l'Orange, Reimagined",
+    description:
+      "Crisp-skin duck breast, blood-orange gastrique, confit-leg croquette, and bitter greens.",
+    price: "$44",
+    thumb: "https://images.unsplash.com/photo-1432139509613-5c4255815697?auto=format&fit=crop&w=600&q=70",
+  },
+];
+
 const menuSections = [
   {
     title: "Starters",
     items: [
-      ["Burrata & Fig", "Creamy burrata, mission figs, basil oil", "$16", "https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=120&q=70"],
-      ["Mushroom Tartine", "Wild mushrooms, whipped ricotta, sourdough", "$14", "https://images.unsplash.com/photo-1476124369491-e7addf5db371?auto=format&fit=crop&w=120&q=70"],
-      ["Citrus Beet Salad", "Roasted beets, orange, pistachio, herbs", "$13", "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=120&q=70"],
+      { name: "Burrata & Heirloom Fig", description: "Creamy Puglian burrata, mission figs, basil oil, aged balsamic pearls, and grilled sourdough.", price: "$18", thumb: "https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=120&q=70" },
+      { name: "Hand-Dived Scallop Crudo", description: "Day-boat scallops, yuzu kosho, finger lime, shaved cucumber, and cold-pressed olive oil.", price: "$21", thumb: "https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?auto=format&fit=crop&w=120&q=70" },
+      { name: "Wild Mushroom Tartine", description: "Forest mushrooms, whipped truffle ricotta, toasted sourdough, and crisp shallot.", price: "$16", thumb: "https://images.unsplash.com/photo-1476124369491-e7addf5db371?auto=format&fit=crop&w=120&q=70" },
+      { name: "Prime Beef Tartare", description: "Hand-cut prime beef, cured egg yolk, capers, cornichon, and warm house brioche.", price: "$19", thumb: "https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=120&q=70" },
+    ],
+  },
+  {
+    title: "Salads",
+    items: [
+      { name: "Citrus & Roasted Beet", description: "Roasted candy-stripe beets, blood orange, pistachio, whipped goat cheese, and herb oil.", price: "$15", thumb: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=120&q=70" },
+      { name: "Little Gem Caesar", description: "Baby gem lettuce, white anchovy, aged parmesan, sourdough crumb, and lemon dressing.", price: "$14", thumb: "https://images.unsplash.com/photo-1550304943-4f24f54ddde9?auto=format&fit=crop&w=120&q=70" },
+      { name: "Heirloom Tomato & Stracciatella", description: "Heirloom tomatoes, creamy stracciatella, basil, toasted pine nut, and saba.", price: "$16", thumb: "https://images.unsplash.com/photo-1592417817098-8fd3d9eb14a5?auto=format&fit=crop&w=120&q=70" },
     ],
   },
   {
     title: "Mains",
     items: [
-      ["Seared Salmon", "Lemon beurre blanc, asparagus, fingerlings", "$29", "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=120&q=70"],
-      ["Short Rib", "Red wine jus, potato puree, glazed carrots", "$34", "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?auto=format&fit=crop&w=120&q=70"],
-      ["Truffle Risotto", "Arborio rice, parmesan, seasonal mushrooms", "$27", "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=120&q=70"],
+      { name: "Seared Faroe Island Salmon", description: "Lemon beurre blanc, grilled asparagus, fingerling potatoes, and salmon roe.", price: "$32", thumb: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=120&q=70" },
+      { name: "48-Hour Braised Short Rib", description: "Red-wine braise, potato puree, glazed heirloom carrots, and bone-marrow jus.", price: "$38", thumb: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?auto=format&fit=crop&w=120&q=70" },
+      { name: "Black Truffle Risotto", description: "Carnaroli rice, aged parmesan, seasonal mushrooms, and shaved black truffle.", price: "$29", thumb: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=120&q=70" },
+      { name: "45-Day Dry-Aged Ribeye", description: "Dry-aged ribeye, pommes Anna, charred cipollini, and cafe de Paris butter.", price: "$54", thumb: "https://images.unsplash.com/photo-1600891964092-4316c288032e?auto=format&fit=crop&w=120&q=70" },
+      { name: "Pan-Roasted Wild Halibut", description: "English pea veloute, morel mushrooms, lardo, and spring alliums.", price: "$36", thumb: "https://images.unsplash.com/photo-1485921325833-c519f76c4927?auto=format&fit=crop&w=120&q=70" },
     ],
   },
   {
     title: "Desserts",
     items: [
-      ["Chocolate Pot de Creme", "Dark chocolate custard, sea salt", "$11", "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=120&q=70"],
-      ["Pear Tarte", "Spiced pear, almond cream, vanilla gelato", "$12", "https://images.unsplash.com/photo-1519915028121-7d3463d20b13?auto=format&fit=crop&w=120&q=70"],
-      ["Espresso Affogato", "Vanilla gelato, espresso, biscotti", "$9", "https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=120&q=70"],
+      { name: "Dark Chocolate Pot de Creme", description: "Valrhona custard, smoked sea salt, olive oil, and creme fraiche.", price: "$13", thumb: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=120&q=70" },
+      { name: "Tarte aux Poires", description: "Spiced pear, almond frangipane, and vanilla-bean gelato.", price: "$13", thumb: "https://images.unsplash.com/photo-1519915028121-7d3463d20b13?auto=format&fit=crop&w=120&q=70" },
+      { name: "Creme Brulee", description: "Tahitian vanilla custard, caramelized sugar, and seasonal berries.", price: "$12", thumb: "https://images.unsplash.com/photo-1470124182917-cc6e71b22ecc?auto=format&fit=crop&w=120&q=70" },
+      { name: "Espresso Affogato", description: "Vanilla-bean gelato, single-origin espresso, and hazelnut biscotti.", price: "$11", thumb: "https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=120&q=70" },
+    ],
+  },
+  {
+    title: "Wine & Cocktails",
+    items: [
+      { name: "Grower Champagne, Brut", description: "Recoltant-manipulant from the Cote des Blancs; fine bead and citrus.", price: "Glass 24 / Bottle 110" },
+      { name: "Burgundy Pinot Noir", description: "Cote de Beaune; silky red fruit, forest floor, and a long finish.", price: "Glass 22 / Bottle 96" },
+      { name: "Barrel-Aged Negroni", description: "Gin, Campari, and sweet vermouth rested in oak, finished with orange oils.", price: "$19" },
+      { name: "Smoked Old Fashioned", description: "Bourbon, demerara, aromatic bitters, and applewood smoke.", price: "$20" },
+      { name: "Garden Gimlet", description: "Gin, house lime cordial, cucumber, and basil.", price: "$17" },
+    ],
+  },
+  {
+    title: "Non-Alcoholic",
+    items: [
+      { name: "Seasonal Botanical Spritz", description: "House shrub, sparkling water, citrus, and fresh herbs.", price: "$9" },
+      { name: "Cold-Pressed Juice", description: "Daily selection of cold-pressed seasonal fruit and vegetables.", price: "$8" },
+      { name: "Single-Origin Pour-Over", description: "Rotating micro-lot coffee, hand-poured to order.", price: "$7" },
+      { name: "Loose-Leaf Tea Service", description: "Curated black, green, and herbal infusions, steeped tableside.", price: "$6" },
+      { name: "House Italian Soda", description: "Made-to-order house syrups, soda, and fresh fruit.", price: "$6" },
     ],
   },
 ];
@@ -245,18 +303,43 @@ function Menu() {
         <MenuIcon />
         <h2>Menu</h2>
       </div>
+
+      <div className="chef-specials">
+        <div className="chef-specials-heading">
+          <Star />
+          <div>
+            <span className="chef-specials-title">Chef's Specials</span>
+            <p>Seasonal selections from Chef Antonio Rossi, available while they last.</p>
+          </div>
+        </div>
+        <div className="chef-specials-grid">
+          {chefSpecials.map((item) => (
+            <article className="chef-special-card" key={item.name}>
+              <img src={item.thumb} alt={item.name} />
+              <div className="chef-special-body">
+                <div className="chef-special-row">
+                  <strong>{item.name}</strong>
+                  <span>{item.price}</span>
+                </div>
+                <p>{item.description}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+
       <div className="menu-layout">
         {menuSections.map((section) => (
           <article className="menu-section" key={section.title}>
             <h3>{section.title}</h3>
-            {section.items.map(([name, description, price, thumb]) => (
-              <div className="menu-item" key={name}>
-                <img className="menu-item-thumb" src={thumb} alt={name} />
+            {section.items.map((item) => (
+              <div className="menu-item" key={item.name}>
+                {item.thumb && <img className="menu-item-thumb" src={item.thumb} alt={item.name} />}
                 <div className="menu-item-text">
-                  <strong>{name}</strong>
-                  <p>{description}</p>
+                  <strong>{item.name}</strong>
+                  <p>{item.description}</p>
                 </div>
-                <span>{price}</span>
+                <span>{item.price}</span>
               </div>
             ))}
           </article>
