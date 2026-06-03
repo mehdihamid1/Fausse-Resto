@@ -18,6 +18,12 @@ import "./styles.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
+// Format a Date as a value the datetime-local input understands (local time).
+function toLocalInputValue(date) {
+  const offsetMs = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
 const pages = [
   { id: "home", label: "Home" },
   { id: "menu", label: "Menu" },
@@ -224,6 +230,7 @@ function Reservations() {
   const [status, setStatus] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availability, setAvailability] = useState(null);
+  const [minDateTime] = useState(() => toLocalInputValue(new Date()));
 
   function updateField(event) {
     const { name, value, type, checked } = event.target;
@@ -309,7 +316,15 @@ function Reservations() {
         </label>
         <label>
           Date and time
-          <input name="timeSlot" type="datetime-local" value={form.timeSlot} onChange={updateField} required />
+          <input
+            name="timeSlot"
+            type="datetime-local"
+            min={minDateTime}
+            value={form.timeSlot}
+            onChange={updateField}
+            required
+          />
+          <small className="field-hint">Open Tue&ndash;Sun, 5:00&ndash;10:00 PM</small>
         </label>
         {availability && (
           <p className={`availability-note ${availability.availableTables === 0 ? "full" : ""}`}>

@@ -222,9 +222,18 @@ def validate_reservation_payload(name, email, time_slot_raw, guest_count):
         return "Please select a reservation date and time."
 
     try:
-        datetime.fromisoformat(time_slot_raw)
+        time_slot = datetime.fromisoformat(time_slot_raw)
     except ValueError:
         return "Please select a valid reservation date and time."
+
+    if time_slot < datetime.now():
+        return "Please choose a reservation time in the future."
+
+    # Cafe Fausse is open Tue-Sun, 5:00 PM - 11:00 PM (last seating 10:00 PM).
+    if time_slot.weekday() == 0:
+        return "Cafe Fausse is closed on Mondays. Please choose another day."
+    if not 17 <= time_slot.hour <= 22:
+        return "Please choose a time between 5:00 PM and 10:00 PM."
 
     try:
         guest_count_value = int(guest_count)
