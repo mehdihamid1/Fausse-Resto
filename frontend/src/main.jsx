@@ -27,6 +27,21 @@ function toLocalInputValue(date) {
   return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
 }
 
+// Render an ISO time slot as a friendly confirmation string, e.g.
+// "Tuesday, June 9, 2026 at 7:00 PM". Falls back to the raw value if parsing fails.
+function formatReservationDateTime(isoString) {
+  const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) return isoString;
+  return date.toLocaleString(undefined, {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 const pages = [
   { id: "home", label: "Home" },
   { id: "menu", label: "Menu" },
@@ -496,7 +511,13 @@ function Reservations() {
 
       setStatus({
         type: "success",
-        message: `${data.message} Table ${data.tableNumber} is reserved for you.`,
+        message: data.message,
+        confirmation: {
+          dateTime: formatReservationDateTime(data.timeSlot),
+          guestCount: data.guestCount,
+          tableNumber: data.tableNumber,
+          reservationId: data.reservationId,
+        },
       });
       setForm({ name: "", email: "", phone: "", timeSlot: "", guestCount: 2, newsletterSignup: false });
     } catch {
@@ -597,7 +618,32 @@ function Reservations() {
           Join the newsletter
         </label>
         <button disabled={isSubmitting}>{isSubmitting ? "Checking..." : "Reserve"}</button>
-        {status && <p className={`status ${status.type}`}>{status.message}</p>}
+        {status && status.confirmation ? (
+          <div className="status success reservation-confirmation">
+            <strong>{status.message}</strong>
+            <dl>
+              <div>
+                <dt>When</dt>
+                <dd>{status.confirmation.dateTime}</dd>
+              </div>
+              <div>
+                <dt>Party size</dt>
+                <dd>{status.confirmation.guestCount} {status.confirmation.guestCount === 1 ? "guest" : "guests"}</dd>
+              </div>
+              <div>
+                <dt>Table</dt>
+                <dd>#{status.confirmation.tableNumber}</dd>
+              </div>
+              <div>
+                <dt>Confirmation</dt>
+                <dd>#{status.confirmation.reservationId}</dd>
+              </div>
+            </dl>
+            <p className="confirmation-footnote">Please arrive a few minutes early; we hold tables for 15 minutes.</p>
+          </div>
+        ) : (
+          status && <p className={`status ${status.type}`}>{status.message}</p>
+        )}
       </form>
     </section>
   );

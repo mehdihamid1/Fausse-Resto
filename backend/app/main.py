@@ -172,6 +172,7 @@ def create_app():
                 "reservationId": reservation_id,
                 "customerId": customer_id,
                 "tableNumber": table_number,
+                "guestCount": guest_count,
                 "timeSlot": time_slot.isoformat(),
             }
         ), 201
