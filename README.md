@@ -1,64 +1,138 @@
 # Cafe Fausse
 
-Dockerized full-stack restaurant web application for the Web Application and Interface Design project.
+A Dockerized full-stack restaurant web application built for the Quantic
+"Web Application & Interface Design" project. Guests can explore the
+restaurant, browse the menu and gallery, read about the owners and awards,
+sign up for the newsletter, and book a table online with live availability.
 
-## Architecture
+## Stack
 
-- `ingress`: Nginx entrypoint for `fausse-cafe.com`
-- `frontend`: React and JSX website
-- `backend`: Flask API server
-- `db`: PostgreSQL database
+| Layer | Technology | Docker service |
+|-------|------------|----------------|
+| Ingress | Nginx | `ingress` |
+| Frontend | React + JSX (Vite), CSS Grid/Flexbox | `frontend` |
+| Backend | Flask / Python (psycopg) | `backend` |
+| Database | PostgreSQL 16 | `db` |
 
-The browser enters through `http://fausse-cafe.com`. Nginx routes normal page traffic to React and `/api` traffic to Flask.
+The browser enters through `http://fausse-cafe.com`. Nginx routes page traffic
+to the React app and `/api` traffic to Flask. Flask talks to PostgreSQL over
+the internal Docker network.
 
-## Local DNS
+## Pages & features
 
-Add this local host entry before opening the site:
+- **Home** — contact info (address, phone, hours), a "Tonight's Chef's Pick"
+  banner, an Awards & Reviews showcase, and the newsletter signup.
+- **Menu** — Chef's Specials plus six categorized sections (Starters, Salads,
+  Mains, Desserts, Wine & Cocktails, Non-Alcoholic) with local food imagery.
+- **Reservations** — booking form with live table availability, a detailed
+  confirmation card, and a "Good to know" panel.
+- **About Us** — restaurant story, "Meet the Owners" backstories, achievements.
+- **Gallery** — responsive image grid with a keyboard-accessible lightbox.
+- **Site-wide** — consistent theme via CSS custom properties, a light/dark mode
+  toggle, responsive layouts (phone/tablet/desktop breakpoints), and accessible
+  form status messaging.
 
-```text
-127.0.0.1 fausse-cafe.com
-```
+All images are royalty-free (Unsplash) or AI-generated and are served locally
+from `frontend/public/images/` rather than hotlinked.
 
-You can add it with:
+## Reservation logic
 
-```bash
-./scripts/add-local-dns.sh
-```
+The reservation system is the core requirement and is intentionally robust:
 
-If the script asks for a password, enter your computer login password. This is required because `/etc/hosts` is a system file.
+- **Validation** (frontend + backend): required name, real email pattern,
+  optional phone, future date/time only, open hours enforced
+  (Tue–Sun, 5:00–10:00 PM seating; closed Monday), and 1–6 guests online
+  (parties of 7+ are directed to the events line).
+- **Availability** — `GET /api/availability?timeSlot=...` reports how many of
+  the 30 tables are open; the form polls it live as the time is chosen.
+- **Table assignment** — a random open table (1–30) is assigned per time slot.
+- **Concurrency-safe** — a `UNIQUE (time_slot, table_number)` constraint backs
+  the assignment; on a concurrent collision the backend retries with a freshly
+  chosen table (up to `MAX_BOOKING_ATTEMPTS`) before reporting the slot full.
+- **Full slot** — when all 30 tables are booked, the API returns a
+  "choose another time" message (HTTP 409).
+- **Confirmation** — on success the UI shows date/time, party size, table, and
+  a confirmation number, and the backend sends a best-effort confirmation email
+  (see below).
 
-## Run
+## API endpoints
 
-```bash
-docker compose up --build
-```
+| Method & path | Purpose |
+|---------------|---------|
+| `GET /api/health` | Service health check |
+| `POST /api/newsletter` | Newsletter signup (validated, upserts customer) |
+| `GET /api/availability` | Open table count for a time slot |
+| `POST /api/reservations` | Create a reservation (validation + availability) |
+| `GET /api/customers` | List customers (development/demo only) |
+| `GET /api/reservations` | List reservations (development/demo only) |
 
-Open:
+## Database
 
-```text
-http://fausse-cafe.com
-```
+Two related tables (see `database/init.sql`):
 
-## Show Database Changes
+- **customers** — `customer_id`, `customer_name`, `customer_email` (unique),
+  `phone_number`, `newsletter_signup`, `created_at`.
+- **reservations** — `reservation_id`, `customer_id` (FK), `time_slot`,
+  `guest_count`, `table_number` (CHECK 1–30), `created_at`, with
+  `UNIQUE (time_slot, table_number)`.
+
+## Run it locally
+
+1. Add the local DNS entry (one time):
+
+   ```bash
+   ./scripts/add-local-dns.sh
+   ```
+
+   This adds `127.0.0.1 fausse-cafe.com` to `/etc/hosts` (it will ask for your
+   login password because `/etc/hosts` is a system file).
+
+2. Build and start everything:
+
+   ```bash
+   docker compose up --build
+   ```
+
+3. Open the site:
+
+   ```text
+   http://fausse-cafe.com
+   ```
+
+## Confirmation email (optional)
+
+Reservation confirmation emails are sent only when SMTP is configured via
+environment variables on the `backend` service (see the commented block in
+`docker-compose.yml`): `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`,
+`MAIL_FROM`. When `SMTP_HOST` is unset (the default for local demos), the
+confirmation is written to the backend logs instead of being sent, and the UI
+only promises an email when one was actually dispatched. A mail failure never
+fails a confirmed booking.
+
+## Showing database changes (for the demo)
+
+Show writes directly in PostgreSQL rather than via an admin page:
 
 ```bash
 docker compose exec db psql -U cafe_user -d cafe_fausse
 ```
-
-Useful demo queries:
 
 ```sql
 SELECT * FROM customers;
 SELECT * FROM reservations;
 ```
 
-## Main Requirements Covered
+## Project structure
 
-- Five React pages: Home, Menu, Reservations, About Us, Gallery
-- Newsletter signup form
-- Reservation form
-- Flask backend API
-- PostgreSQL Customers and Reservations tables
-- Reservation logic with 30 available tables per time slot
-- Dockerized frontend, backend, database, and ingress
-# Fausse-Resto
+```text
+cafe-fausse/
+  docker-compose.yml
+  ingress/        # Nginx config for fausse-cafe.com
+  frontend/       # React + Vite app (src/, public/images/)
+  backend/        # Flask app (app/main.py)
+  database/       # init.sql schema
+  scripts/        # add-local-dns.sh helper
+  README.md
+  ai-tooling.md
+  staging.md
+```
