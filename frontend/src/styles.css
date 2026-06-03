@@ -252,6 +252,20 @@ input {
   min-height: auto;
 }
 
+.availability-note {
+  background: #f3efe4;
+  border-radius: 6px;
+  color: #5a5346;
+  font-weight: 700;
+  margin: 0;
+  padding: 10px 12px;
+}
+
+.availability-note.full {
+  background: #fae8e6;
+  color: #8c261f;
+}
+
 .status {
   border-radius: 6px;
   font-weight: 700;

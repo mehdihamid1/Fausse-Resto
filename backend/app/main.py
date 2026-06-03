@@ -54,6 +54,34 @@ def create_app():
             }
         )
 
+    @app.get("/api/availability")
+    def availability():
+        time_slot_raw = (request.args.get("timeSlot") or "").strip()
+        if not time_slot_raw:
+            return jsonify({"message": "Please provide a timeSlot."}), 400
+
+        try:
+            time_slot = datetime.fromisoformat(time_slot_raw)
+        except ValueError:
+            return jsonify({"message": "Invalid timeSlot."}), 400
+
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT COUNT(*) FROM reservations WHERE time_slot = %s;",
+                    (time_slot,),
+                )
+                booked = cur.fetchone()[0]
+
+        return jsonify(
+            {
+                "timeSlot": time_slot.isoformat(),
+                "totalTables": TABLE_COUNT,
+                "bookedTables": booked,
+                "availableTables": max(TABLE_COUNT - booked, 0),
+            }
+        )
+
     @app.post("/api/reservations")
     def create_reservation():
         payload = request.get_json(silent=True) or {}

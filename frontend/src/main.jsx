@@ -209,11 +209,35 @@ function Reservations() {
   });
   const [status, setStatus] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [availability, setAvailability] = useState(null);
 
   function updateField(event) {
     const { name, value, type, checked } = event.target;
     setForm((current) => ({ ...current, [name]: type === "checkbox" ? checked : value }));
   }
+
+  useEffect(() => {
+    if (!form.timeSlot) {
+      setAvailability(null);
+      return;
+    }
+
+    let cancelled = false;
+    setAvailability({ loading: true });
+
+    fetch(`${API_BASE_URL}/availability?timeSlot=${encodeURIComponent(form.timeSlot)}`)
+      .then((response) => response.json())
+      .then((data) => {
+        if (!cancelled) setAvailability(data);
+      })
+      .catch(() => {
+        if (!cancelled) setAvailability(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [form.timeSlot]);
 
   async function submitReservation(event) {
     event.preventDefault();
@@ -273,6 +297,17 @@ function Reservations() {
           Date and time
           <input name="timeSlot" type="datetime-local" value={form.timeSlot} onChange={updateField} required />
         </label>
+        {availability && (
+          <p className={`availability-note ${availability.availableTables === 0 ? "full" : ""}`}>
+            {availability.loading
+              ? "Checking availability..."
+              : typeof availability.availableTables === "number"
+              ? availability.availableTables > 0
+                ? `${availability.availableTables} of ${availability.totalTables} tables available at this time.`
+                : "No tables available at this time. Please choose another time."
+              : ""}
+          </p>
+        )}
         <label>
           Guests
           <input name="guestCount" type="number" min="1" value={form.guestCount} onChange={updateField} required />
