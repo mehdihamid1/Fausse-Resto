@@ -3,12 +3,14 @@ import random
 from datetime import datetime
 
 import psycopg
+from psycopg import errors
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 TABLE_COUNT = 30
+MAX_BOOKING_ATTEMPTS = 5
 
 
 def create_app():
@@ -98,21 +100,13 @@ def create_app():
 
         time_slot = datetime.fromisoformat(time_slot_raw)
         guest_count = int(guest_count)
+        full_message = "That time slot is full. Please choose another time."
 
         with get_connection() as conn:
+            if len(read_booked_tables(conn, time_slot)) >= TABLE_COUNT:
+                return jsonify({"message": full_message}), 409
+
             with conn.cursor() as cur:
-                cur.execute(
-                    "SELECT table_number FROM reservations WHERE time_slot = %s;",
-                    (time_slot,),
-                )
-                booked_tables = {row[0] for row in cur.fetchall()}
-                available_tables = [table for table in range(1, TABLE_COUNT + 1) if table not in booked_tables]
-
-                if not available_tables:
-                    return jsonify({"message": "That time slot is full. Please choose another time."}), 409
-
-                table_number = random.choice(available_tables)
-
                 cur.execute(
                     """
                     INSERT INTO customers (customer_name, customer_email, phone_number, newsletter_signup)
@@ -127,17 +121,38 @@ def create_app():
                     (name, email, phone, newsletter_signup),
                 )
                 customer_id = cur.fetchone()[0]
-
-                cur.execute(
-                    """
-                    INSERT INTO reservations (customer_id, time_slot, guest_count, table_number)
-                    VALUES (%s, %s, %s, %s)
-                    RETURNING reservation_id;
-                    """,
-                    (customer_id, time_slot, guest_count, table_number),
-                )
-                reservation_id = cur.fetchone()[0]
             conn.commit()
+
+            # Two concurrent bookings can land on the same open table; the
+            # UNIQUE (time_slot, table_number) constraint rejects the loser, so
+            # retry with a freshly chosen table until one sticks or the slot fills.
+            reservation_id = None
+            table_number = None
+            for _ in range(MAX_BOOKING_ATTEMPTS):
+                booked_tables = read_booked_tables(conn, time_slot)
+                available_tables = [t for t in range(1, TABLE_COUNT + 1) if t not in booked_tables]
+                if not available_tables:
+                    break
+
+                table_number = random.choice(available_tables)
+                try:
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            """
+                            INSERT INTO reservations (customer_id, time_slot, guest_count, table_number)
+                            VALUES (%s, %s, %s, %s)
+                            RETURNING reservation_id;
+                            """,
+                            (customer_id, time_slot, guest_count, table_number),
+                        )
+                        reservation_id = cur.fetchone()[0]
+                    conn.commit()
+                    break
+                except errors.UniqueViolation:
+                    conn.rollback()
+
+            if reservation_id is None:
+                return jsonify({"message": full_message}), 409
 
         return jsonify(
             {
@@ -211,6 +226,15 @@ def get_connection():
     if not DATABASE_URL:
         raise RuntimeError("DATABASE_URL environment variable is required.")
     return psycopg.connect(DATABASE_URL)
+
+
+def read_booked_tables(conn, time_slot):
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT table_number FROM reservations WHERE time_slot = %s;",
+            (time_slot,),
+        )
+        return {row[0] for row in cur.fetchall()}
 
 
 def validate_reservation_payload(name, email, time_slot_raw, guest_count):
