@@ -1,5 +1,6 @@
 import os
 import random
+import re
 from datetime import datetime
 
 import psycopg
@@ -11,6 +12,17 @@ from flask_cors import CORS
 DATABASE_URL = os.environ.get("DATABASE_URL")
 TABLE_COUNT = 30
 MAX_BOOKING_ATTEMPTS = 5
+
+# Parties of 7+ are handled by the events team (see the "Good to know" panel),
+# so the online form tops out at 6 guests per reservation.
+MAX_GUESTS_PER_RESERVATION = 6
+
+# Pragmatic email check: a local part, an "@", and a dotted domain, no spaces.
+EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+def is_valid_email(email):
+    return bool(EMAIL_PATTERN.match(email))
 
 
 def create_app():
@@ -28,7 +40,7 @@ def create_app():
         email = (payload.get("email") or "").strip().lower()
         phone = (payload.get("phone") or "").strip() or None
 
-        if not name or not email or "@" not in email:
+        if not name or not is_valid_email(email):
             return jsonify({"message": "Please enter a valid name and email."}), 400
 
         with get_connection() as conn:
@@ -240,7 +252,7 @@ def read_booked_tables(conn, time_slot):
 def validate_reservation_payload(name, email, time_slot_raw, guest_count):
     if not name:
         return "Please enter your name."
-    if not email or "@" not in email:
+    if not is_valid_email(email):
         return "Please enter a valid email address."
     if not time_slot_raw:
         return "Please select a reservation date and time."
@@ -266,6 +278,11 @@ def validate_reservation_payload(name, email, time_slot_raw, guest_count):
 
     if guest_count_value < 1:
         return "Guest count must be at least 1."
+    if guest_count_value > MAX_GUESTS_PER_RESERVATION:
+        return (
+            f"For parties larger than {MAX_GUESTS_PER_RESERVATION}, please call our "
+            "events team at (212) 555-0148."
+        )
 
     return None
 

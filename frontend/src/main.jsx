@@ -576,7 +576,16 @@ function Reservations() {
         )}
         <label>
           Guests
-          <input name="guestCount" type="number" min="1" value={form.guestCount} onChange={updateField} required />
+          <input
+            name="guestCount"
+            type="number"
+            min="1"
+            max="6"
+            value={form.guestCount}
+            onChange={updateField}
+            required
+          />
+          <small className="field-hint">Up to 6 online; parties of 7+ please call (212) 555-0148</small>
         </label>
         <label className="checkbox-label">
           <input
