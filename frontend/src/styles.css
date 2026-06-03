@@ -522,6 +522,36 @@ input {
   font-weight: 400;
 }
 
+.reservation-notes {
+  margin-top: 28px;
+}
+
+.reservation-notes h3 {
+  margin-bottom: 14px;
+}
+
+.reservation-notes ul {
+  display: grid;
+  gap: 16px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.reservation-notes li {
+  display: grid;
+  gap: 2px;
+}
+
+.reservation-notes li strong {
+  color: var(--color-accent);
+}
+
+.reservation-notes li span {
+  color: var(--color-muted);
+  line-height: 1.6;
+}
+
 .checkbox-label {
   align-items: center;
   display: flex;

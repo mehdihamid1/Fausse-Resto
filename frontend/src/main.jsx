@@ -516,6 +516,27 @@ function Reservations() {
         <p className="lead">
           Choose a date and time. The system checks 30 available tables and confirms your reservation when a table is open.
         </p>
+        <div className="reservation-notes">
+          <h3>Good to know</h3>
+          <ul>
+            <li>
+              <strong>The dining experience</strong>
+              <span>Dinner is offered a la carte or as a seasonal chef's tasting menu. Plan on two to three hours for the full experience.</span>
+            </li>
+            <li>
+              <strong>Large parties &amp; private events</strong>
+              <span>For groups of seven or more, or a private buyout, call us at (212) 555-0148 and our events team will take care of the details.</span>
+            </li>
+            <li>
+              <strong>Cancellations</strong>
+              <span>Plans change - please modify or cancel at least 24 hours ahead so we can offer the table to another guest.</span>
+            </li>
+            <li>
+              <strong>Dress code</strong>
+              <span>Smart casual. Most guests feel most at home in elevated evening attire.</span>
+            </li>
+          </ul>
+        </div>
       </div>
       <form className="form-panel" onSubmit={submitReservation}>
         <label>
