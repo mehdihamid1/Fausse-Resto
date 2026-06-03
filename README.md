@@ -52,8 +52,7 @@ The reservation system is the core requirement and is intentionally robust:
 - **Full slot** — when all 30 tables are booked, the API returns a
   "choose another time" message (HTTP 409).
 - **Confirmation** — on success the UI shows date/time, party size, table, and
-  a confirmation number, and the backend sends a best-effort confirmation email
-  (see below).
+  a confirmation number.
 
 ## API endpoints
 
@@ -99,15 +98,28 @@ Two related tables (see `database/init.sql`):
    http://fausse-cafe.com
    ```
 
-## Confirmation email (optional)
+## Reservation confirmation emails
 
-Reservation confirmation emails are sent only when SMTP is configured via
-environment variables on the `backend` service (see the commented block in
-`docker-compose.yml`): `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`,
-`MAIL_FROM`. When `SMTP_HOST` is unset (the default for local demos), the
-confirmation is written to the backend logs instead of being sent, and the UI
-only promises an email when one was actually dispatched. A mail failure never
-fails a confirmed booking.
+On a successful booking the backend sends a confirmation email. For local
+development the stack includes **Mailpit**, a self-contained mail server that
+**captures** every message in a web inbox instead of delivering it to the real
+internet — so nothing leaves your machine and no accounts or credentials are
+needed. It starts automatically with `docker compose up`.
+
+To verify it works:
+
+1. Book a reservation at `http://fausse-cafe.com` (the confirmation card shows
+   "A confirmation email is on its way").
+2. Open the Mailpit inbox: **http://localhost:8025**
+3. The confirmation email appears there, addressed to whatever email you booked
+   with, showing the date/time, party size, table, and confirmation number.
+
+To send through a real mail provider instead (e.g. in production), point the
+`backend` service's SMTP variables in `docker-compose.yml` at it —
+`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `MAIL_FROM`, and set
+`SMTP_USE_TLS=true` (the default) for providers that use STARTTLS on port 587.
+When `SMTP_HOST` is unset entirely, the confirmation is written to the backend
+logs instead of sent. A mail failure never fails a confirmed booking.
 
 ## Showing database changes (for the demo)
 

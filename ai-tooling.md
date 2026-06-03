@@ -14,7 +14,8 @@ This project was built with the help of AI code-generation tools at two stages.
   the reservation logic (open-hours/date validation, stronger email and party-
   size validation, a concurrency-safe table-assignment retry), enrich the
   confirmation experience, localize the menu images, add light/dark theming and
-  responsive breakpoints, and add a best-effort confirmation email.
+  responsive breakpoints, and add a reservation confirmation email (captured
+  locally by a Mailpit dev server).
 
 ## How it was used
 

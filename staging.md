@@ -36,5 +36,5 @@ The app is container-based and environment-driven, so deploying it would mean:
 - Running the same compose stack (or equivalent) on a host with a managed
   PostgreSQL instance, pointing `DATABASE_URL` at it.
 - Setting a real domain on the Nginx ingress and enabling TLS.
-- Optionally configuring the SMTP variables (see `docker-compose.yml`) so
-  reservation confirmation emails are sent rather than logged.
+- Pointing the backend's SMTP variables at a real mail provider (replacing the
+  local Mailpit capture server) so confirmation emails are actually delivered.

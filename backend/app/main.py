@@ -22,17 +22,20 @@ MAX_BOOKING_ATTEMPTS = 5
 OPEN_HOURS = (17, 18, 19, 20, 21, 22)
 CLOSED_WEEKDAY = 0  # Monday
 
-# Optional SMTP settings for reservation confirmation emails. When SMTP_HOST is
-# unset (the default for local demos) the confirmation is logged instead of sent.
+# Larger parties are booked as special group events by the restaurant directly
+# (see the "Good to know" panel), so the online form tops out here.
+MAX_GUESTS_PER_RESERVATION = 10
+
+# Reservation confirmation email. When SMTP_HOST is unset the confirmation is
+# logged instead of sent (so the feature is inert until SMTP is configured).
+# SMTP_USE_TLS controls whether STARTTLS is negotiated: real providers on port
+# 587 want it (the default); plaintext dev servers like Mailpit need it off.
 SMTP_HOST = os.environ.get("SMTP_HOST")
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
 SMTP_USER = os.environ.get("SMTP_USER")
 SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD")
+SMTP_USE_TLS = os.environ.get("SMTP_USE_TLS", "true").strip().lower() != "false"
 MAIL_FROM = os.environ.get("MAIL_FROM", "reservations@fausse-cafe.com")
-
-# Larger parties are booked as special group events by the restaurant directly
-# (see the "Good to know" panel), so the online form tops out here.
-MAX_GUESTS_PER_RESERVATION = 10
 
 # Pragmatic email check: a local part, an "@", and a dotted domain, no spaces.
 EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -319,7 +322,7 @@ def send_confirmation_email(app, to_email, name, time_slot, guest_count, table_n
 
     Returns True only if a message was actually dispatched. Never raises: a
     mail failure must not undo a confirmed booking. When SMTP is not configured
-    (e.g. the local demo) the message is logged instead of sent.
+    the message is logged instead of sent.
     """
     when = time_slot.strftime("%A, %B %d, %Y at %I:%M %p")
     body = (
@@ -349,7 +352,8 @@ def send_confirmation_email(app, to_email, name, time_slot, guest_count, table_n
 
     try:
         with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as smtp:
-            smtp.starttls()
+            if SMTP_USE_TLS:
+                smtp.starttls()
             if SMTP_USER:
                 smtp.login(SMTP_USER, SMTP_PASSWORD)
             smtp.send_message(message)
