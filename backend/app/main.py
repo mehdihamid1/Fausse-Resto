@@ -23,9 +23,9 @@ SMTP_USER = os.environ.get("SMTP_USER")
 SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD")
 MAIL_FROM = os.environ.get("MAIL_FROM", "reservations@fausse-cafe.com")
 
-# Parties of 7+ are handled by the events team (see the "Good to know" panel),
-# so the online form tops out at 6 guests per reservation.
-MAX_GUESTS_PER_RESERVATION = 6
+# Larger parties are booked as special group events by the restaurant directly
+# (see the "Good to know" panel), so the online form tops out here.
+MAX_GUESTS_PER_RESERVATION = 10
 
 # Pragmatic email check: a local part, an "@", and a dotted domain, no spaces.
 EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -341,8 +341,8 @@ def validate_reservation_payload(name, email, time_slot_raw, guest_count):
         return "Guest count must be at least 1."
     if guest_count_value > MAX_GUESTS_PER_RESERVATION:
         return (
-            f"For parties larger than {MAX_GUESTS_PER_RESERVATION}, please call our "
-            "events team at (212) 555-0148."
+            f"Parties of more than {MAX_GUESTS_PER_RESERVATION} are booked as special "
+            "group events. Please contact the restaurant at (212) 555-0148."
         )
 
     return None

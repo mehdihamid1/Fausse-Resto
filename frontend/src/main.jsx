@@ -555,7 +555,7 @@ function Reservations() {
             </li>
             <li>
               <strong>Large parties &amp; private events</strong>
-              <span>For groups of seven or more, or a private buyout, call us at (212) 555-0148 and our events team will take care of the details.</span>
+              <span>Parties of more than 10, or a private buyout, are booked as special group events - call us at (212) 555-0148 and our events team will take care of the details.</span>
             </li>
             <li>
               <strong>Cancellations</strong>
@@ -610,13 +610,19 @@ function Reservations() {
             name="guestCount"
             type="number"
             min="1"
-            max="6"
+            max="10"
             value={form.guestCount}
             onChange={updateField}
             required
           />
-          <small className="field-hint">Up to 6 online; parties of 7+ please call (212) 555-0148</small>
+          <small className="field-hint">Up to 10 guests online</small>
         </label>
+        {Number(form.guestCount) > 10 && (
+          <p className="group-booking-note">
+            Parties of more than 10 are booked as special group events. Please contact the
+            restaurant at (212) 555-0148.
+          </p>
+        )}
         <label className="checkbox-label">
           <input
             name="newsletterSignup"
