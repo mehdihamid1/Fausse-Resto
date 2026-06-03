@@ -98,6 +98,85 @@ Two related tables (see `database/init.sql`):
    http://fausse-cafe.com
    ```
 
+## Developer guide
+
+Everything runs as Docker Compose services on a private network
+(`fausse_cafe_net`). Source for `frontend` and `backend` is bind-mounted into
+the containers, so both hot-reload on edits — you rarely need to rebuild.
+
+### Launching the stack
+
+```bash
+./scripts/add-local-dns.sh     # one time: maps 127.0.0.1 fausse-cafe.com (sudo)
+docker compose up --build      # build images and start all services
+docker compose ps              # confirm every service is "running"/"healthy"
+```
+
+Stop with `Ctrl-C`, or `docker compose down` (add `-v` to also wipe the
+database and reset to an empty schema).
+
+### Containers at a glance
+
+Only **ingress** and **mailpit** publish ports to your host. `frontend`,
+`backend`, and `db` are reachable only from inside the Docker network — you
+talk to them *through the ingress* or with `docker compose exec`.
+
+| Service | Purpose | Image | Reach it from your host |
+|---------|---------|-------|--------------------------|
+| `ingress` | Nginx front door; routes `/` → frontend and `/api` → backend | `nginx:1.27-alpine` | **http://fausse-cafe.com** (port 80) |
+| `frontend` | React + Vite single-page app | built from `frontend/` | via the ingress (internal port 5173) |
+| `backend` | Flask REST API under `/api` | built from `backend/` | via the ingress at `/api` (internal port 5000) |
+| `db` | PostgreSQL 16 data store | `postgres:16-alpine` | `docker compose exec` only (internal port 5432) |
+| `mailpit` | Captures outgoing confirmation emails | `axllent/mailpit:v1.21` | **http://localhost:8025** (web inbox) |
+
+### Connecting to / inspecting each container
+
+```bash
+# Ingress — watch routing / 502s
+docker compose logs -f ingress
+
+# Frontend — Vite dev server logs, or a shell in the container
+docker compose logs -f frontend
+docker compose exec frontend sh
+
+# Backend — Flask logs (confirmation emails are logged here if SMTP is off),
+# or a shell / Python REPL in the container
+docker compose logs -f backend
+docker compose exec backend sh
+
+# Database — open a psql session (user/db/password come from docker-compose.yml)
+docker compose exec db psql -U cafe_user -d cafe_fausse
+#   then, e.g.:  SELECT * FROM customers;  SELECT * FROM reservations;
+
+# Mailpit — the email inbox is a web UI; just open it in a browser
+open http://localhost:8025          # macOS  (Linux: xdg-open)
+```
+
+> The database, backend, and frontend ports are intentionally not published to
+> the host. To connect an external client (e.g. a Postgres GUI to `db`), add a
+> `ports:` mapping for that service in `docker-compose.yml` and restart it.
+
+### Hitting the app to check it out
+
+- **In the browser:** open **http://fausse-cafe.com** and click through Home →
+  Menu → Reservations → About Us → Gallery. Book a table on the Reservations
+  page to exercise the full flow.
+- **The API directly** (through the ingress — note the `Host` header so Nginx
+  routes it):
+
+  ```bash
+  curl -H "Host: fausse-cafe.com" http://localhost/api/health
+
+  curl -H "Host: fausse-cafe.com" -H "Content-Type: application/json" \
+    -X POST http://localhost/api/reservations \
+    -d '{"name":"Ada","email":"ada@example.com","timeSlot":"2026-06-12T19:00","guestCount":2}'
+  ```
+
+- **Confirm the side effects:** the new row shows up via
+  `docker compose exec db psql -U cafe_user -d cafe_fausse -c "SELECT * FROM reservations;"`,
+  and the confirmation email appears in the Mailpit inbox at
+  **http://localhost:8025**.
+
 ## Reservation confirmation emails
 
 On a successful booking the backend sends a confirmation email. For local
