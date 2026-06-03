@@ -2,7 +2,7 @@ import os
 import random
 import re
 import smtplib
-from datetime import datetime
+from datetime import date, datetime, time, timedelta
 from email.message import EmailMessage
 
 import psycopg
@@ -17,6 +17,10 @@ DATABASE_URL = os.environ.get("DATABASE_URL")
 # 30 for the real demo. Values stay within the DB's CHECK (table_number 1..30).
 TABLE_COUNT = max(1, min(30, int(os.environ.get("TABLE_COUNT", "30"))))
 MAX_BOOKING_ATTEMPTS = 5
+
+# Cafe Fausse seats on the hour, 5:00 PM through 10:00 PM, and is closed Mondays.
+OPEN_HOURS = (17, 18, 19, 20, 21, 22)
+CLOSED_WEEKDAY = 0  # Monday
 
 # Optional SMTP settings for reservation confirmation emails. When SMTP_HOST is
 # unset (the default for local demos) the confirmation is logged instead of sent.
@@ -108,6 +112,57 @@ def create_app():
                 "availableTables": max(TABLE_COUNT - booked, 0),
             }
         )
+
+    @app.get("/api/availability/day")
+    def availability_day():
+        try:
+            day = date.fromisoformat((request.args.get("date") or "").strip())
+        except ValueError:
+            return jsonify({"message": "Invalid or missing date."}), 400
+
+        day_start = datetime.combine(day, time.min)
+        now = datetime.now()
+        with get_connection() as conn:
+            booked_counts = read_booked_counts(conn, day_start, day_start + timedelta(days=1))
+
+        slots, closed = compute_day_slots(day, booked_counts, now)
+        return jsonify(
+            {
+                "date": day.isoformat(),
+                "closed": closed,
+                "slots": slots,
+                "dayBookable": any(s["bookable"] for s in slots),
+            }
+        )
+
+    @app.get("/api/availability/month")
+    def availability_month():
+        try:
+            year = int(request.args.get("year"))
+            month = int(request.args.get("month"))
+            first = date(year, month, 1)
+        except (TypeError, ValueError):
+            return jsonify({"message": "Invalid or missing year/month."}), 400
+
+        next_first = date(year + 1, 1, 1) if month == 12 else date(year, month + 1, 1)
+        now = datetime.now()
+        with get_connection() as conn:
+            booked_counts = read_booked_counts(
+                conn, datetime.combine(first, time.min), datetime.combine(next_first, time.min)
+            )
+
+        days = {}
+        cursor = first
+        while cursor < next_first:
+            slots, closed = compute_day_slots(cursor, booked_counts, now)
+            days[cursor.isoformat()] = {
+                "bookable": any(s["bookable"] for s in slots),
+                "closed": closed,
+                "past": cursor < now.date(),
+            }
+            cursor += timedelta(days=1)
+
+        return jsonify({"year": year, "month": month, "days": days})
 
     @app.post("/api/reservations")
     def create_reservation():
@@ -313,6 +368,45 @@ def read_booked_tables(conn, time_slot):
         return {row[0] for row in cur.fetchall()}
 
 
+def read_booked_counts(conn, start_dt, end_dt):
+    """Return {time_slot: booked_table_count} for slots in [start_dt, end_dt)."""
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT time_slot, COUNT(*)
+            FROM reservations
+            WHERE time_slot >= %s AND time_slot < %s
+            GROUP BY time_slot;
+            """,
+            (start_dt, end_dt),
+        )
+        return {row[0]: row[1] for row in cur.fetchall()}
+
+
+def compute_day_slots(day, booked_counts, now):
+    """Build the seating slots for a day with per-slot availability.
+
+    A slot is bookable when the day is open (not Monday), the slot is in the
+    future, and at least one of the TABLE_COUNT tables is free.
+    """
+    closed = day.weekday() == CLOSED_WEEKDAY
+    slots = []
+    for hour in OPEN_HOURS:
+        slot_dt = datetime.combine(day, time(hour))
+        booked = booked_counts.get(slot_dt, 0)
+        available = max(TABLE_COUNT - booked, 0)
+        bookable = (not closed) and (slot_dt > now) and (available > 0)
+        slots.append(
+            {
+                "time": f"{hour:02d}:00",
+                "available": available,
+                "total": TABLE_COUNT,
+                "bookable": bookable,
+            }
+        )
+    return slots, closed
+
+
 def validate_reservation_payload(name, email, time_slot_raw, guest_count):
     if not name:
         return "Please enter your name."
@@ -329,11 +423,11 @@ def validate_reservation_payload(name, email, time_slot_raw, guest_count):
     if time_slot < datetime.now():
         return "Please choose a reservation time in the future."
 
-    # Cafe Fausse is open Tue-Sun, 5:00 PM - 11:00 PM (last seating 10:00 PM).
-    if time_slot.weekday() == 0:
+    # Cafe Fausse seats on the hour, 5:00 PM - 10:00 PM, and is closed Mondays.
+    if time_slot.weekday() == CLOSED_WEEKDAY:
         return "Cafe Fausse is closed on Mondays. Please choose another day."
-    if not 17 <= time_slot.hour <= 22:
-        return "Please choose a time between 5:00 PM and 10:00 PM."
+    if time_slot.hour not in OPEN_HOURS or time_slot.minute != 0:
+        return "Please choose an available seating time between 5:00 PM and 10:00 PM."
 
     try:
         guest_count_value = int(guest_count)
