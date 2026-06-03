@@ -48,7 +48,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -520,6 +521,119 @@ input {
 .field-hint {
   color: var(--color-muted);
   font-weight: 400;
+}
+
+.field-group {
+  display: grid;
+  gap: 6px;
+}
+
+.field-label {
+  font-weight: 700;
+}
+
+select {
+  background: var(--color-surface);
+  border: 1px solid var(--color-input-border);
+  border-radius: 6px;
+  color: var(--color-text);
+  min-height: 44px;
+  padding: 0 12px;
+}
+
+.calendar {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.calendar-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.calendar-header strong {
+  font-size: 1rem;
+}
+
+.calendar-nav {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-text);
+  display: inline-flex;
+  height: 32px;
+  justify-content: center;
+  width: 32px;
+}
+
+.calendar-nav:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.calendar-weekdays,
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.calendar-weekdays {
+  margin-bottom: 4px;
+}
+
+.calendar-weekdays span {
+  color: var(--color-muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.calendar-grid.loading {
+  opacity: 0.5;
+}
+
+.calendar-blank {
+  visibility: hidden;
+}
+
+.calendar-day {
+  aspect-ratio: 1 / 1;
+  background: var(--color-subtle);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.calendar-day:hover:not(:disabled) {
+  border-color: var(--color-accent);
+}
+
+.calendar-day:disabled {
+  background: transparent;
+  color: var(--color-muted);
+  cursor: not-allowed;
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
+.calendar-day.selected {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #fff;
+}
+
+.calendar-legend {
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  margin: 10px 0 0;
 }
 
 .reservation-notes {

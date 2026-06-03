@@ -21,10 +21,22 @@ import "./styles.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
-// Format a Date as a value the datetime-local input understands (local time).
-function toLocalInputValue(date) {
-  const offsetMs = date.getTimezoneOffset() * 60000;
-  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function pad2(n) {
+  return String(n).padStart(2, "0");
+}
+
+function isoDate(year, month, day) {
+  return `${year}-${pad2(month)}-${pad2(day)}`;
+}
+
+// "17:00" -> "5:00 PM"
+function formatHour(timeStr) {
+  const [h, m] = timeStr.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour12 = ((h + 11) % 12) + 1;
+  return `${hour12}:${pad2(m)} ${period}`;
 }
 
 // Render an ISO time slot as a friendly confirmation string, e.g.
@@ -449,20 +461,103 @@ function Menu() {
   );
 }
 
+function Calendar({ year, month, monthData, loading, selectedDate, onSelect, onChangeMonth, canGoPrev }) {
+  const monthLabel = new Date(year, month - 1, 1).toLocaleString(undefined, {
+    month: "long",
+    year: "numeric",
+  });
+  const firstWeekday = new Date(year, month - 1, 1).getDay();
+  const daysInMonth = new Date(year, month, 0).getDate();
+
+  const cells = [];
+  for (let i = 0; i < firstWeekday; i += 1) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d += 1) cells.push(d);
+
+  return (
+    <div className="calendar">
+      <div className="calendar-header">
+        <button
+          type="button"
+          className="calendar-nav"
+          onClick={() => onChangeMonth(-1)}
+          disabled={!canGoPrev}
+          aria-label="Previous month"
+        >
+          <ChevronLeft size={18} />
+        </button>
+        <strong aria-live="polite">{monthLabel}</strong>
+        <button
+          type="button"
+          className="calendar-nav"
+          onClick={() => onChangeMonth(1)}
+          aria-label="Next month"
+        >
+          <ChevronRight size={18} />
+        </button>
+      </div>
+      <div className="calendar-weekdays">
+        {WEEKDAYS.map((w) => (
+          <span key={w}>{w}</span>
+        ))}
+      </div>
+      <div className={`calendar-grid${loading ? " loading" : ""}`}>
+        {cells.map((day, idx) => {
+          if (day === null) return <span key={`blank-${idx}`} className="calendar-blank" />;
+          const iso = isoDate(year, month, day);
+          const info = monthData ? monthData[iso] : null;
+          const bookable = Boolean(info && info.bookable);
+          const selected = iso === selectedDate;
+          let title = "";
+          if (info && info.closed) title = "Closed on Mondays";
+          else if (info && info.past) title = "Past date";
+          else if (info && !bookable) title = "Fully booked";
+          return (
+            <button
+              type="button"
+              key={iso}
+              className={`calendar-day${selected ? " selected" : ""}`}
+              onClick={() => onSelect(iso)}
+              disabled={!bookable}
+              aria-pressed={selected}
+              aria-label={`${monthLabel} ${day}${bookable ? "" : " (unavailable)"}`}
+              title={title}
+            >
+              {day}
+            </button>
+          );
+        })}
+      </div>
+      <p className="calendar-legend">
+        {loading ? "Loading availability…" : "Greyed dates are closed, past, or fully booked."}
+      </p>
+    </div>
+  );
+}
+
 function Reservations() {
+  const today = new Date();
+  const currentMonth = { year: today.getFullYear(), month: today.getMonth() + 1 };
+
   const [form, setForm] = useState({
     name: "",
     email: "",
     phone: "",
-    timeSlot: "",
     guestCount: 2,
     newsletterSignup: false,
   });
+  const [view, setView] = useState(currentMonth);
+  const [monthData, setMonthData] = useState(null);
+  const [selectedDate, setSelectedDate] = useState("");
+  const [daySlots, setDaySlots] = useState(null);
+  const [selectedTime, setSelectedTime] = useState("");
   const [status, setStatus] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [availability, setAvailability] = useState(null);
-  const [minDateTime] = useState(() => toLocalInputValue(new Date()));
+  const [refreshKey, setRefreshKey] = useState(0);
   const statusRef = useRef(null);
+
+  const canGoPrev =
+    view.year > currentMonth.year ||
+    (view.year === currentMonth.year && view.month > currentMonth.month);
 
   // Pull focus to the status region so keyboard and screen-reader users are
   // taken straight to the confirmation or the error, mirroring the lightbox's
@@ -471,49 +566,90 @@ function Reservations() {
     if (status) statusRef.current?.focus();
   }, [status]);
 
+  // Month availability drives which calendar days are selectable.
+  useEffect(() => {
+    let cancelled = false;
+    setMonthData(null);
+    fetch(`${API_BASE_URL}/availability/month?year=${view.year}&month=${view.month}`)
+      .then((response) => response.json())
+      .then((data) => {
+        if (!cancelled) setMonthData(data.days || {});
+      })
+      .catch(() => {
+        if (!cancelled) setMonthData({});
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [view.year, view.month, refreshKey]);
+
+  // Per-slot availability for the chosen day drives the time dropdown.
+  useEffect(() => {
+    if (!selectedDate) {
+      setDaySlots(null);
+      return;
+    }
+    let cancelled = false;
+    setDaySlots({ loading: true });
+    fetch(`${API_BASE_URL}/availability/day?date=${selectedDate}`)
+      .then((response) => response.json())
+      .then((data) => {
+        if (!cancelled) setDaySlots(data);
+      })
+      .catch(() => {
+        if (!cancelled) setDaySlots(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedDate, refreshKey]);
+
   function updateField(event) {
     const { name, value, type, checked } = event.target;
     setForm((current) => ({ ...current, [name]: type === "checkbox" ? checked : value }));
   }
 
-  useEffect(() => {
-    if (!form.timeSlot) {
-      setAvailability(null);
-      return;
-    }
+  function changeMonth(delta) {
+    setView((v) => {
+      const m = v.month - 1 + delta;
+      return { year: v.year + Math.floor(m / 12), month: ((m % 12) + 12) % 12 + 1 };
+    });
+  }
 
-    let cancelled = false;
-    setAvailability({ loading: true });
+  function selectDate(iso) {
+    setSelectedDate(iso);
+    setSelectedTime("");
+  }
 
-    fetch(`${API_BASE_URL}/availability?timeSlot=${encodeURIComponent(form.timeSlot)}`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (!cancelled) setAvailability(data);
-      })
-      .catch(() => {
-        if (!cancelled) setAvailability(null);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [form.timeSlot]);
+  const slots = daySlots && daySlots.slots ? daySlots.slots : null;
+  const selectedSlot = slots ? slots.find((s) => s.time === selectedTime) : null;
 
   async function submitReservation(event) {
     event.preventDefault();
+    if (!selectedDate || !selectedTime) {
+      setStatus({ type: "error", message: "Please choose an available date and time." });
+      return;
+    }
     setIsSubmitting(true);
     setStatus(null);
+
+    const payload = {
+      ...form,
+      guestCount: Number(form.guestCount),
+      timeSlot: `${selectedDate}T${selectedTime}`,
+    };
 
     try {
       const response = await fetch(`${API_BASE_URL}/reservations`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
       const data = await response.json();
 
       if (!response.ok) {
         setStatus({ type: "error", message: data.message || "Reservation failed." });
+        setRefreshKey((k) => k + 1); // someone may have taken the last table
         return;
       }
 
@@ -528,7 +664,10 @@ function Reservations() {
           emailSent: data.emailSent,
         },
       });
-      setForm({ name: "", email: "", phone: "", timeSlot: "", guestCount: 2, newsletterSignup: false });
+      setForm({ name: "", email: "", phone: "", guestCount: 2, newsletterSignup: false });
+      setSelectedDate("");
+      setSelectedTime("");
+      setRefreshKey((k) => k + 1);
     } catch {
       setStatus({ type: "error", message: "Could not reach the reservation server." });
     } finally {
@@ -581,27 +720,48 @@ function Reservations() {
           Phone
           <input name="phone" value={form.phone} onChange={updateField} />
         </label>
-        <label>
-          Date and time
-          <input
-            name="timeSlot"
-            type="datetime-local"
-            min={minDateTime}
-            value={form.timeSlot}
-            onChange={updateField}
-            required
+        <div className="field-group">
+          <span className="field-label">Date</span>
+          <Calendar
+            year={view.year}
+            month={view.month}
+            monthData={monthData}
+            loading={monthData === null}
+            selectedDate={selectedDate}
+            onSelect={selectDate}
+            onChangeMonth={changeMonth}
+            canGoPrev={canGoPrev}
           />
-          <small className="field-hint">Open Tue&ndash;Sun, 5:00&ndash;10:00 PM</small>
+          <small className="field-hint">Open Tue&ndash;Sun, 5:00&ndash;10:00 PM seating. Closed Mondays.</small>
+        </div>
+        <label>
+          Time
+          <select
+            name="time"
+            value={selectedTime}
+            onChange={(event) => setSelectedTime(event.target.value)}
+            disabled={!selectedDate || !slots}
+            required
+          >
+            <option value="">{selectedDate ? "Select a time" : "Choose a date first"}</option>
+            {slots &&
+              slots.map((slot) => (
+                <option key={slot.time} value={slot.time} disabled={!slot.bookable}>
+                  {formatHour(slot.time)}
+                  {slot.bookable
+                    ? ` — ${slot.available} of ${slot.total} tables`
+                    : slot.available === 0
+                    ? " — Full"
+                    : " — Unavailable"}
+                </option>
+              ))}
+          </select>
         </label>
-        {availability && (
-          <p className={`availability-note ${availability.availableTables === 0 ? "full" : ""}`}>
-            {availability.loading
-              ? "Checking availability..."
-              : typeof availability.availableTables === "number"
-              ? availability.availableTables > 0
-                ? `${availability.availableTables} of ${availability.totalTables} tables available at this time.`
-                : "No tables available at this time. Please choose another time."
-              : ""}
+        {selectedSlot && (
+          <p className={`availability-note ${selectedSlot.available === 0 ? "full" : ""}`}>
+            {selectedSlot.available > 0
+              ? `${selectedSlot.available} of ${selectedSlot.total} tables available at ${formatHour(selectedSlot.time)}.`
+              : "No tables available at this time. Please choose another time."}
           </p>
         )}
         <label>
@@ -632,7 +792,9 @@ function Reservations() {
           />
           Join the newsletter
         </label>
-        <button disabled={isSubmitting}>{isSubmitting ? "Checking..." : "Reserve"}</button>
+        <button disabled={isSubmitting || !selectedDate || !selectedTime}>
+          {isSubmitting ? "Checking..." : "Reserve"}
+        </button>
         {status && (
           <div
             ref={statusRef}
