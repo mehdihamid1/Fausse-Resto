@@ -9,7 +9,9 @@ import {
   Mail,
   MapPin,
   Menu as MenuIcon,
+  Moon,
   Star,
+  Sun,
   Users,
   Utensils,
   X,
@@ -111,12 +113,37 @@ const owners = [
   },
 ];
 
+function getInitialTheme() {
+  try {
+    const saved = localStorage.getItem("theme");
+    if (saved === "light" || saved === "dark") return saved;
+  } catch {
+    // localStorage unavailable; fall through to default
+  }
+  return "light";
+}
+
 function App() {
   const [activePage, setActivePage] = useState("home");
+  const [theme, setTheme] = useState(getInitialTheme);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    try {
+      localStorage.setItem("theme", theme);
+    } catch {
+      // ignore persistence failures
+    }
+  }, [theme]);
 
   return (
     <div className="app">
-      <Header activePage={activePage} setActivePage={setActivePage} />
+      <Header
+        activePage={activePage}
+        setActivePage={setActivePage}
+        theme={theme}
+        setTheme={setTheme}
+      />
       <main>
         {activePage === "home" && <Home setActivePage={setActivePage} />}
         {activePage === "menu" && <Menu />}
@@ -129,7 +156,7 @@ function App() {
   );
 }
 
-function Header({ activePage, setActivePage }) {
+function Header({ activePage, setActivePage, theme, setTheme }) {
   return (
     <header className="site-header">
       <button className="brand" onClick={() => setActivePage("home")}>
@@ -147,7 +174,28 @@ function Header({ activePage, setActivePage }) {
           </button>
         ))}
       </nav>
+      <ThemeToggle theme={theme} setTheme={setTheme} />
     </header>
+  );
+}
+
+function ThemeToggle({ theme, setTheme }) {
+  const next = theme === "dark" ? "light" : "dark";
+  return (
+    <button
+      className="theme-toggle"
+      onClick={() => setTheme(next)}
+      aria-label={`Switch to ${next} mode`}
+      title={`Switch to ${next} mode`}
+    >
+      <Sun size={15} />
+      <span className="theme-labels">
+        <span className={theme === "light" ? "active" : ""}>Light</span>
+        <span className="divider">|</span>
+        <span className={theme === "dark" ? "active" : ""}>Dark</span>
+      </span>
+      <Moon size={15} />
+    </button>
   );
 }
 
