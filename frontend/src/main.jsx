@@ -10,6 +10,7 @@ import {
   MapPin,
   Menu as MenuIcon,
   Star,
+  Users,
   Utensils,
   X,
 } from "lucide-react";
@@ -88,6 +89,19 @@ const menuSections = [
       ["Pear Tarte", "Spiced pear, almond cream, vanilla gelato", "$12", "https://images.unsplash.com/photo-1519915028121-7d3463d20b13?auto=format&fit=crop&w=120&q=70"],
       ["Espresso Affogato", "Vanilla gelato, espresso, biscotti", "$9", "https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=120&q=70"],
     ],
+  },
+];
+
+const owners = [
+  {
+    name: "Chef Antonio Rossi",
+    role: "Executive Chef & Co-Founder",
+    bio: "Antonio opened Cafe Fausse in 2010 after training in the kitchens of Rome and New York. He builds the menu around seasonal ingredients and classic technique, plating each course with quiet precision.",
+  },
+  {
+    name: "Maria Lopez",
+    role: "Co-Founder & Restaurateur",
+    bio: "Maria leads the dining room and the guest experience. Her focus on warm, unhurried hospitality has shaped the calm, welcoming atmosphere Cafe Fausse is known for.",
   },
 ];
 
@@ -330,31 +344,49 @@ function Reservations() {
 
 function About() {
   return (
-    <section className="page-section split">
-      <div>
-        <h2>About Us</h2>
-        <p className="lead">
-          Cafe Fausse was created by a small hospitality team focused on elegant food,
-          calm service, and memorable evenings around the table.
-        </p>
-        <p>
-          The restaurant highlights seasonal ingredients, thoughtful wine pairings,
-          and a dining room designed for celebrations, business dinners, and quiet
-          weeknight meals.
-        </p>
-      </div>
-      <div className="about-image-panel">
-        <img
-          src="/images/gallery-dining-room.png"
-          alt="Cafe Fausse dining room"
-        />
-        <div className="about-quote">
-          <Star size={18} />
-          <p>"Refined cooking, warm hospitality, and a menu that feels special without feeling distant."</p>
-          <strong>— City Dining Review</strong>
+    <>
+      <section className="page-section split">
+        <div>
+          <h2>About Us</h2>
+          <p className="lead">
+            Cafe Fausse was created by a small hospitality team focused on elegant food,
+            calm service, and memorable evenings around the table.
+          </p>
+          <p>
+            The restaurant highlights seasonal ingredients, thoughtful wine pairings,
+            and a dining room designed for celebrations, business dinners, and quiet
+            weeknight meals.
+          </p>
         </div>
-      </div>
-    </section>
+        <div className="about-image-panel">
+          <img
+            src="/images/gallery-dining-room.png"
+            alt="Cafe Fausse dining room"
+          />
+          <div className="about-quote">
+            <Star size={18} />
+            <p>"Refined cooking, warm hospitality, and a menu that feels special without feeling distant."</p>
+            <strong>— City Dining Review</strong>
+          </div>
+        </div>
+      </section>
+
+      <section className="page-section owners">
+        <div className="section-heading">
+          <Users />
+          <h2>Meet the Owners</h2>
+        </div>
+        <div className="owners-grid">
+          {owners.map((owner) => (
+            <article className="owner-card" key={owner.name}>
+              <h3>{owner.name}</h3>
+              <span className="owner-role">{owner.role}</span>
+              <p>{owner.bio}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+    </>
   );
 }
 

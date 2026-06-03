@@ -522,6 +522,42 @@ input {
   font-size: 0.85rem;
 }
 
+.owners {
+  padding-top: 0;
+}
+
+.owners-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.owner-card {
+  background: #fff;
+  border: 1px solid #ded8ca;
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.owner-card h3 {
+  margin-bottom: 4px;
+}
+
+.owner-role {
+  color: #9d2f26;
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.owner-card p {
+  color: #645d53;
+  line-height: 1.7;
+  margin-bottom: 0;
+}
+
 footer {
   align-items: center;
   background: #111;
@@ -554,7 +590,8 @@ footer {
 
   .info-grid,
   .menu-layout,
-  .gallery-grid {
+  .gallery-grid,
+  .owners-grid {
     grid-template-columns: 1fr;
   }
 
