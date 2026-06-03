@@ -104,14 +104,14 @@ const chefSpecials = [
     description:
       "Brown-butter poached lobster tail, sauce americaine, charred leek, and oscietra caviar.",
     price: "$52",
-    thumb: "https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=600&q=70",
+    thumb: "/images/menu/chef-lobster.jpg",
   },
   {
     name: "Duck a l'Orange, Reimagined",
     description:
       "Crisp-skin duck breast, blood-orange gastrique, confit-leg croquette, and bitter greens.",
     price: "$44",
-    thumb: "https://images.unsplash.com/photo-1432139509613-5c4255815697?auto=format&fit=crop&w=600&q=70",
+    thumb: "/images/menu/chef-duck.jpg",
   },
 ];
 
@@ -119,37 +119,37 @@ const menuSections = [
   {
     title: "Starters",
     items: [
-      { name: "Burrata & Heirloom Fig", description: "Creamy Puglian burrata, mission figs, basil oil, aged balsamic pearls, and grilled sourdough.", price: "$18", thumb: "https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=120&q=70" },
-      { name: "Hand-Dived Scallop Crudo", description: "Day-boat scallops, yuzu kosho, finger lime, shaved cucumber, and cold-pressed olive oil.", price: "$21", thumb: "https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?auto=format&fit=crop&w=120&q=70" },
-      { name: "Wild Mushroom Tartine", description: "Forest mushrooms, whipped truffle ricotta, toasted sourdough, and crisp shallot.", price: "$16", thumb: "https://images.unsplash.com/photo-1476124369491-e7addf5db371?auto=format&fit=crop&w=120&q=70" },
-      { name: "Prime Beef Tartare", description: "Hand-cut prime beef, cured egg yolk, capers, cornichon, and warm house brioche.", price: "$19", thumb: "https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=120&q=70" },
+      { name: "Burrata & Heirloom Fig", description: "Creamy Puglian burrata, mission figs, basil oil, aged balsamic pearls, and grilled sourdough.", price: "$18", thumb: "/images/menu/burrata.jpg" },
+      { name: "Hand-Dived Scallop Crudo", description: "Day-boat scallops, yuzu kosho, finger lime, shaved cucumber, and cold-pressed olive oil.", price: "$21", thumb: "/images/menu/scallop-crudo.jpg" },
+      { name: "Wild Mushroom Tartine", description: "Forest mushrooms, whipped truffle ricotta, toasted sourdough, and crisp shallot.", price: "$16", thumb: "/images/menu/mushroom-tartine.jpg" },
+      { name: "Prime Beef Tartare", description: "Hand-cut prime beef, cured egg yolk, capers, cornichon, and warm house brioche.", price: "$19", thumb: "/images/menu/beef-tartare.jpg" },
     ],
   },
   {
     title: "Salads",
     items: [
-      { name: "Citrus & Roasted Beet", description: "Roasted candy-stripe beets, blood orange, pistachio, whipped goat cheese, and herb oil.", price: "$15", thumb: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=120&q=70" },
-      { name: "Little Gem Caesar", description: "Baby gem lettuce, white anchovy, aged parmesan, sourdough crumb, and lemon dressing.", price: "$14", thumb: "https://images.unsplash.com/photo-1550304943-4f24f54ddde9?auto=format&fit=crop&w=120&q=70" },
-      { name: "Heirloom Tomato & Stracciatella", description: "Heirloom tomatoes, creamy stracciatella, basil, toasted pine nut, and saba.", price: "$16", thumb: "https://images.unsplash.com/photo-1592417817098-8fd3d9eb14a5?auto=format&fit=crop&w=120&q=70" },
+      { name: "Citrus & Roasted Beet", description: "Roasted candy-stripe beets, blood orange, pistachio, whipped goat cheese, and herb oil.", price: "$15", thumb: "/images/menu/citrus-beet.jpg" },
+      { name: "Little Gem Caesar", description: "Baby gem lettuce, white anchovy, aged parmesan, sourdough crumb, and lemon dressing.", price: "$14", thumb: "/images/menu/caesar.jpg" },
+      { name: "Heirloom Tomato & Stracciatella", description: "Heirloom tomatoes, creamy stracciatella, basil, toasted pine nut, and saba.", price: "$16", thumb: "/images/menu/heirloom-tomato.jpg" },
     ],
   },
   {
     title: "Mains",
     items: [
-      { name: "Seared Faroe Island Salmon", description: "Lemon beurre blanc, grilled asparagus, fingerling potatoes, and salmon roe.", price: "$32", thumb: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=120&q=70" },
-      { name: "48-Hour Braised Short Rib", description: "Red-wine braise, potato puree, glazed heirloom carrots, and bone-marrow jus.", price: "$38", thumb: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?auto=format&fit=crop&w=120&q=70" },
-      { name: "Black Truffle Risotto", description: "Carnaroli rice, aged parmesan, seasonal mushrooms, and shaved black truffle.", price: "$29", thumb: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=120&q=70" },
-      { name: "45-Day Dry-Aged Ribeye", description: "Dry-aged ribeye, pommes Anna, charred cipollini, and cafe de Paris butter.", price: "$54", thumb: "https://images.unsplash.com/photo-1600891964092-4316c288032e?auto=format&fit=crop&w=120&q=70" },
-      { name: "Pan-Roasted Wild Halibut", description: "English pea veloute, morel mushrooms, lardo, and spring alliums.", price: "$36", thumb: "https://images.unsplash.com/photo-1485921325833-c519f76c4927?auto=format&fit=crop&w=120&q=70" },
+      { name: "Seared Faroe Island Salmon", description: "Lemon beurre blanc, grilled asparagus, fingerling potatoes, and salmon roe.", price: "$32", thumb: "/images/menu/salmon.jpg" },
+      { name: "48-Hour Braised Short Rib", description: "Red-wine braise, potato puree, glazed heirloom carrots, and bone-marrow jus.", price: "$38", thumb: "/images/menu/short-rib.jpg" },
+      { name: "Black Truffle Risotto", description: "Carnaroli rice, aged parmesan, seasonal mushrooms, and shaved black truffle.", price: "$29", thumb: "/images/menu/truffle-risotto.jpg" },
+      { name: "45-Day Dry-Aged Ribeye", description: "Dry-aged ribeye, pommes Anna, charred cipollini, and cafe de Paris butter.", price: "$54", thumb: "/images/menu/ribeye.jpg" },
+      { name: "Pan-Roasted Wild Halibut", description: "English pea veloute, morel mushrooms, lardo, and spring alliums.", price: "$36", thumb: "/images/menu/halibut.jpg" },
     ],
   },
   {
     title: "Desserts",
     items: [
-      { name: "Dark Chocolate Pot de Creme", description: "Valrhona custard, smoked sea salt, olive oil, and creme fraiche.", price: "$13", thumb: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=120&q=70" },
-      { name: "Tarte aux Poires", description: "Spiced pear, almond frangipane, and vanilla-bean gelato.", price: "$13", thumb: "https://images.unsplash.com/photo-1519915028121-7d3463d20b13?auto=format&fit=crop&w=120&q=70" },
-      { name: "Creme Brulee", description: "Tahitian vanilla custard, caramelized sugar, and seasonal berries.", price: "$12", thumb: "https://images.unsplash.com/photo-1470124182917-cc6e71b22ecc?auto=format&fit=crop&w=120&q=70" },
-      { name: "Espresso Affogato", description: "Vanilla-bean gelato, single-origin espresso, and hazelnut biscotti.", price: "$11", thumb: "https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=120&q=70" },
+      { name: "Dark Chocolate Pot de Creme", description: "Valrhona custard, smoked sea salt, olive oil, and creme fraiche.", price: "$13", thumb: "/images/menu/pot-de-creme.jpg" },
+      { name: "Tarte aux Poires", description: "Spiced pear, almond frangipane, and vanilla-bean gelato.", price: "$13", thumb: "/images/menu/tarte-poires.jpg" },
+      { name: "Creme Brulee", description: "Tahitian vanilla custard, caramelized sugar, and seasonal berries.", price: "$12", thumb: "/images/menu/creme-brulee.jpg" },
+      { name: "Espresso Affogato", description: "Vanilla-bean gelato, single-origin espresso, and hazelnut biscotti.", price: "$11", thumb: "/images/menu/affogato.jpg" },
     ],
   },
   {
