@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import {
   Award,
@@ -462,6 +462,14 @@ function Reservations() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availability, setAvailability] = useState(null);
   const [minDateTime] = useState(() => toLocalInputValue(new Date()));
+  const statusRef = useRef(null);
+
+  // Pull focus to the status region so keyboard and screen-reader users are
+  // taken straight to the confirmation or the error, mirroring the lightbox's
+  // keyboard care.
+  useEffect(() => {
+    if (status) statusRef.current?.focus();
+  }, [status]);
 
   function updateField(event) {
     const { name, value, type, checked } = event.target;
@@ -618,31 +626,41 @@ function Reservations() {
           Join the newsletter
         </label>
         <button disabled={isSubmitting}>{isSubmitting ? "Checking..." : "Reserve"}</button>
-        {status && status.confirmation ? (
-          <div className="status success reservation-confirmation">
-            <strong>{status.message}</strong>
-            <dl>
-              <div>
-                <dt>When</dt>
-                <dd>{status.confirmation.dateTime}</dd>
+        {status && (
+          <div
+            ref={statusRef}
+            tabIndex={-1}
+            role={status.type === "error" ? "alert" : "status"}
+            aria-live={status.type === "error" ? "assertive" : "polite"}
+            className="status-region"
+          >
+            {status.confirmation ? (
+              <div className="status success reservation-confirmation">
+                <strong>{status.message}</strong>
+                <dl>
+                  <div>
+                    <dt>When</dt>
+                    <dd>{status.confirmation.dateTime}</dd>
+                  </div>
+                  <div>
+                    <dt>Party size</dt>
+                    <dd>{status.confirmation.guestCount} {status.confirmation.guestCount === 1 ? "guest" : "guests"}</dd>
+                  </div>
+                  <div>
+                    <dt>Table</dt>
+                    <dd>#{status.confirmation.tableNumber}</dd>
+                  </div>
+                  <div>
+                    <dt>Confirmation</dt>
+                    <dd>#{status.confirmation.reservationId}</dd>
+                  </div>
+                </dl>
+                <p className="confirmation-footnote">Please arrive a few minutes early; we hold tables for 15 minutes.</p>
               </div>
-              <div>
-                <dt>Party size</dt>
-                <dd>{status.confirmation.guestCount} {status.confirmation.guestCount === 1 ? "guest" : "guests"}</dd>
-              </div>
-              <div>
-                <dt>Table</dt>
-                <dd>#{status.confirmation.tableNumber}</dd>
-              </div>
-              <div>
-                <dt>Confirmation</dt>
-                <dd>#{status.confirmation.reservationId}</dd>
-              </div>
-            </dl>
-            <p className="confirmation-footnote">Please arrive a few minutes early; we hold tables for 15 minutes.</p>
+            ) : (
+              <p className={`status ${status.type}`}>{status.message}</p>
+            )}
           </div>
-        ) : (
-          status && <p className={`status ${status.type}`}>{status.message}</p>
         )}
       </form>
     </section>
@@ -814,6 +832,11 @@ function Gallery() {
 function Newsletter() {
   const [form, setForm] = useState({ name: "", email: "", phone: "" });
   const [status, setStatus] = useState(null);
+  const statusRef = useRef(null);
+
+  useEffect(() => {
+    if (status) statusRef.current?.focus();
+  }, [status]);
 
   async function submitNewsletter(event) {
     event.preventDefault();
@@ -871,7 +894,17 @@ function Newsletter() {
           onChange={(event) => setForm({ ...form, phone: event.target.value })}
         />
         <button>Sign Up</button>
-        {status && <p className={`status ${status.type}`}>{status.message}</p>}
+        {status && (
+          <p
+            ref={statusRef}
+            tabIndex={-1}
+            role={status.type === "error" ? "alert" : "status"}
+            aria-live={status.type === "error" ? "assertive" : "polite"}
+            className={`status ${status.type}`}
+          >
+            {status.message}
+          </p>
+        )}
       </form>
     </section>
   );

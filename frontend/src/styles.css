@@ -575,6 +575,18 @@ input {
   color: #8c261f;
 }
 
+.status-region {
+  display: grid;
+  gap: 14px;
+}
+
+/* The status region is a programmatic focus target, not a control, so it
+   should not show a focus ring when focus is moved to it after submit. */
+.status-region:focus,
+.status:focus {
+  outline: none;
+}
+
 .status {
   border-radius: 6px;
   font-weight: 700;
