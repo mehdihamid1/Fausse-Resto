@@ -1,7 +1,9 @@
 import os
 import random
 import re
+import smtplib
 from datetime import datetime
+from email.message import EmailMessage
 
 import psycopg
 from psycopg import errors
@@ -12,6 +14,14 @@ from flask_cors import CORS
 DATABASE_URL = os.environ.get("DATABASE_URL")
 TABLE_COUNT = 30
 MAX_BOOKING_ATTEMPTS = 5
+
+# Optional SMTP settings for reservation confirmation emails. When SMTP_HOST is
+# unset (the default for local demos) the confirmation is logged instead of sent.
+SMTP_HOST = os.environ.get("SMTP_HOST")
+SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
+SMTP_USER = os.environ.get("SMTP_USER")
+SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD")
+MAIL_FROM = os.environ.get("MAIL_FROM", "reservations@fausse-cafe.com")
 
 # Parties of 7+ are handled by the events team (see the "Good to know" panel),
 # so the online form tops out at 6 guests per reservation.
@@ -166,6 +176,10 @@ def create_app():
             if reservation_id is None:
                 return jsonify({"message": full_message}), 409
 
+        email_sent = send_confirmation_email(
+            app, email, name, time_slot, guest_count, table_number, reservation_id
+        )
+
         return jsonify(
             {
                 "message": "Reservation confirmed.",
@@ -174,6 +188,7 @@ def create_app():
                 "tableNumber": table_number,
                 "guestCount": guest_count,
                 "timeSlot": time_slot.isoformat(),
+                "emailSent": email_sent,
             }
         ), 201
 
@@ -239,6 +254,51 @@ def get_connection():
     if not DATABASE_URL:
         raise RuntimeError("DATABASE_URL environment variable is required.")
     return psycopg.connect(DATABASE_URL)
+
+
+def send_confirmation_email(app, to_email, name, time_slot, guest_count, table_number, reservation_id):
+    """Best-effort reservation confirmation email.
+
+    Returns True only if a message was actually dispatched. Never raises: a
+    mail failure must not undo a confirmed booking. When SMTP is not configured
+    (e.g. the local demo) the message is logged instead of sent.
+    """
+    when = time_slot.strftime("%A, %B %d, %Y at %I:%M %p")
+    body = (
+        f"Hello {name},\n\n"
+        "Your reservation at Cafe Fausse is confirmed.\n\n"
+        f"  When:           {when}\n"
+        f"  Party:          {guest_count} guest(s)\n"
+        f"  Table:          #{table_number}\n"
+        f"  Confirmation #: {reservation_id}\n\n"
+        "We hold tables for 15 minutes past the reservation time. To change or "
+        "cancel, please call (212) 555-0148 at least 24 hours ahead.\n\n"
+        "We look forward to welcoming you.\n"
+        "Cafe Fausse\n"
+    )
+
+    if not SMTP_HOST:
+        app.logger.info(
+            "SMTP not configured; confirmation for %s not emailed:\n%s", to_email, body
+        )
+        return False
+
+    message = EmailMessage()
+    message["Subject"] = "Your Cafe Fausse reservation is confirmed"
+    message["From"] = MAIL_FROM
+    message["To"] = to_email
+    message.set_content(body)
+
+    try:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as smtp:
+            smtp.starttls()
+            if SMTP_USER:
+                smtp.login(SMTP_USER, SMTP_PASSWORD)
+            smtp.send_message(message)
+        return True
+    except Exception:  # mail must never break a confirmed booking
+        app.logger.exception("Failed to send confirmation email to %s", to_email)
+        return False
 
 
 def read_booked_tables(conn, time_slot):

@@ -525,6 +525,7 @@ function Reservations() {
           guestCount: data.guestCount,
           tableNumber: data.tableNumber,
           reservationId: data.reservationId,
+          emailSent: data.emailSent,
         },
       });
       setForm({ name: "", email: "", phone: "", timeSlot: "", guestCount: 2, newsletterSignup: false });
@@ -656,6 +657,9 @@ function Reservations() {
                   </div>
                 </dl>
                 <p className="confirmation-footnote">Please arrive a few minutes early; we hold tables for 15 minutes.</p>
+                {status.confirmation.emailSent && (
+                  <p className="confirmation-footnote">A confirmation email is on its way.</p>
+                )}
               </div>
             ) : (
               <p className={`status ${status.type}`}>{status.message}</p>
