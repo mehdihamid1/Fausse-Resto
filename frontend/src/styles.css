@@ -778,6 +778,35 @@ input {
   margin-bottom: 0;
 }
 
+.owner-known-for {
+  color: var(--color-text);
+  font-style: italic;
+  margin-top: 14px;
+}
+
+.owner-achievements {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+}
+
+.owner-achievements li {
+  align-items: flex-start;
+  color: var(--color-text);
+  display: flex;
+  font-size: 0.9rem;
+  gap: 8px;
+  line-height: 1.5;
+}
+
+.owner-achievements svg {
+  color: var(--color-accent);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
 footer {
   align-items: center;
   background: var(--color-footer-bg);

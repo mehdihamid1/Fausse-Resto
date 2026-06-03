@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import {
+  Award,
   CalendarCheck,
   Camera,
   ChevronLeft,
@@ -162,12 +163,28 @@ const owners = [
   {
     name: "Chef Antonio Rossi",
     role: "Executive Chef & Co-Founder",
-    bio: "Antonio opened Cafe Fausse in 2010 after training in the kitchens of Rome and New York. He builds the menu around seasonal ingredients and classic technique, plating each course with quiet precision.",
+    bio:
+      "Raised in the hills outside Bologna, Antonio learned to cook in his grandmother's trattoria before formal training in Rome and a formative apprenticeship in Modena. Over fifteen years he cooked through Michelin-starred kitchens in Italy and New York, slowly refining the restrained, ingredient-led style that defines Cafe Fausse today. He opened the restaurant in 2010 with a single conviction: that technical precision should never overshadow the warmth of the table.",
+    knownFor:
+      "Known for a tasting menu that turns three or four perfect ingredients into something quietly unforgettable.",
+    achievements: [
+      "Earned a Michelin star as head chef of a Manhattan tasting-menu restaurant (2016).",
+      "Two-time James Beard Award nominee for Best Chef.",
+      "Named to Food & Wine's 'Best New Chefs' list early in his career.",
+    ],
   },
   {
     name: "Maria Lopez",
-    role: "Co-Founder & Restaurateur",
-    bio: "Maria leads the dining room and the guest experience. Her focus on warm, unhurried hospitality has shaped the calm, welcoming atmosphere Cafe Fausse is known for.",
+    role: "Co-Founder & Wine Director",
+    bio:
+      "Maria grew up in her family's restaurant in Barcelona and trained across hospitality in London and New York. A certified Advanced Sommelier, she built her reputation running the floor and wine programs of several acclaimed dining rooms before co-founding Cafe Fausse. She designs the guest experience end to end - from the pacing of service to a cellar that has become a destination in its own right.",
+    knownFor:
+      "Known for pairings that feel like a conversation between the glass and the plate.",
+    achievements: [
+      "Advanced Sommelier through the Court of Master Sommeliers.",
+      "Curated a 600-label cellar honored with Wine Spectator's Best of Award of Excellence.",
+      "Recognized in regional 'Restaurateur of the Year' awards.",
+    ],
   },
 ];
 
@@ -517,13 +534,21 @@ function About() {
         <div>
           <h2>About Us</h2>
           <p className="lead">
-            Cafe Fausse was created by a small hospitality team focused on elegant food,
-            calm service, and memorable evenings around the table.
+            Cafe Fausse opened in 2010 with a simple idea: pair the precision of a
+            fine-dining kitchen with the warmth of a neighborhood table. The name -
+            a playful wink at the false modesty of a restaurant that takes its craft
+            very seriously - set the tone for everything that followed.
           </p>
           <p>
-            The restaurant highlights seasonal ingredients, thoughtful wine pairings,
-            and a dining room designed for celebrations, business dinners, and quiet
-            weeknight meals.
+            Our menu changes with the seasons and leans on long relationships with
+            small farms, day-boat fisheries, and independent winemakers. Each plate is
+            built around a few exceptional ingredients and finished with classical
+            technique.
+          </p>
+          <p>
+            Beyond the food, the dining room was designed for lingering: soft light,
+            unhurried service, and a cellar curated for everything from a quiet weeknight
+            dinner to a once-in-a-lifetime celebration.
           </p>
         </div>
         <div className="about-image-panel">
@@ -550,6 +575,15 @@ function About() {
               <h3>{owner.name}</h3>
               <span className="owner-role">{owner.role}</span>
               <p>{owner.bio}</p>
+              <p className="owner-known-for">{owner.knownFor}</p>
+              <ul className="owner-achievements">
+                {owner.achievements.map((achievement) => (
+                  <li key={achievement}>
+                    <Award size={15} />
+                    <span>{achievement}</span>
+                  </li>
+                ))}
+              </ul>
             </article>
           ))}
         </div>
