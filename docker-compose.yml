@@ -34,6 +34,9 @@ services:
       - FLASK_ENV=development
       - DATABASE_URL=postgresql://cafe_user:cafe_password@db:5432/cafe_fausse
       - CORS_ORIGINS=http://fausse-cafe.com,http://localhost
+      # Testing only: lower the table count so slots/days fill fast (1 booking
+      # fills a slot, 6 fill a day). Remove or set to 30 for the real demo.
+      # - TABLE_COUNT=1
       # Optional: set these to email reservation confirmations. When SMTP_HOST
       # is unset, confirmations are logged by the backend instead of sent.
       # - SMTP_HOST=smtp.example.com

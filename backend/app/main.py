@@ -12,7 +12,10 @@ from flask_cors import CORS
 
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
-TABLE_COUNT = 30
+# The restaurant has 30 tables. This is configurable only to make "slot full" and
+# "day full" states easy to exercise in testing (e.g. TABLE_COUNT=1); keep it at
+# 30 for the real demo. Values stay within the DB's CHECK (table_number 1..30).
+TABLE_COUNT = max(1, min(30, int(os.environ.get("TABLE_COUNT", "30"))))
 MAX_BOOKING_ATTEMPTS = 5
 
 # Optional SMTP settings for reservation confirmation emails. When SMTP_HOST is
