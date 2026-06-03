@@ -142,6 +142,71 @@ main {
   min-height: calc(100vh - 132px);
 }
 
+.chef-banner {
+  align-items: center;
+  background: #202c2c;
+  border: 0;
+  color: #fff;
+  display: flex;
+  gap: 18px;
+  padding: 14px 8vw;
+  text-align: left;
+  transition: filter 0.18s ease;
+  width: 100%;
+}
+
+.chef-banner:hover,
+.chef-banner:focus-visible {
+  filter: brightness(1.08);
+  outline: none;
+}
+
+.chef-banner-thumb {
+  border-radius: 8px;
+  flex-shrink: 0;
+  height: 60px;
+  object-fit: cover;
+  width: 60px;
+}
+
+.chef-banner-text {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+
+.chef-banner-eyebrow {
+  align-items: center;
+  color: var(--color-gold);
+  display: inline-flex;
+  font-size: 0.72rem;
+  font-weight: 800;
+  gap: 6px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.chef-banner-text strong {
+  font-size: 1.05rem;
+}
+
+.chef-banner-text p {
+  color: #d7d2c8;
+  font-size: 0.9rem;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chef-banner-price {
+  color: var(--color-gold);
+  font-size: 1.2rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
 .hero {
   align-items: center;
   background:

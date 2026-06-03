@@ -257,9 +257,31 @@ function ThemeToggle({ theme, setTheme }) {
   );
 }
 
+function ChefBanner({ setActivePage }) {
+  const pick = chefSpecials[0];
+  return (
+    <button
+      className="chef-banner"
+      onClick={() => setActivePage("menu")}
+      aria-label={`View the chef's pick: ${pick.name}`}
+    >
+      <img className="chef-banner-thumb" src={pick.thumb} alt={pick.name} />
+      <div className="chef-banner-text">
+        <span className="chef-banner-eyebrow">
+          <Star size={14} /> Tonight's Chef's Pick
+        </span>
+        <strong>{pick.name}</strong>
+        <p>{pick.description}</p>
+      </div>
+      <span className="chef-banner-price">{pick.price}</span>
+    </button>
+  );
+}
+
 function Home({ setActivePage }) {
   return (
     <>
+      <ChefBanner setActivePage={setActivePage} />
       <section className="hero">
         <div>
           <p className="eyebrow">Fine dining in the heart of the city</p>
