@@ -312,6 +312,65 @@ h2 {
   margin-bottom: 18px;
 }
 
+.awards-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 28px;
+}
+
+.award-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+}
+
+.award-card svg {
+  color: var(--color-gold);
+}
+
+.award-card strong {
+  display: block;
+  font-size: 1.05rem;
+  margin: 8px 0 4px;
+}
+
+.award-card p {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.reviews-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.review-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-accent);
+  border-radius: 8px;
+  margin: 0;
+  padding: 20px 22px;
+}
+
+.review-card p {
+  font-style: italic;
+  line-height: 1.6;
+  margin: 0 0 10px;
+}
+
+.review-card cite {
+  color: var(--color-accent);
+  font-size: 0.85rem;
+  font-style: normal;
+  font-weight: 800;
+}
+
 .section-heading h2 {
   margin-bottom: 0;
 }
@@ -841,7 +900,9 @@ footer {
   .menu-layout,
   .gallery-grid,
   .owners-grid,
-  .chef-specials-grid {
+  .chef-specials-grid,
+  .awards-grid,
+  .reviews-grid {
     grid-template-columns: 1fr;
   }
 

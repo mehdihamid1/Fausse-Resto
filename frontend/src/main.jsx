@@ -295,6 +295,28 @@ function ChefBanner({ setActivePage }) {
   );
 }
 
+const awards = [
+  { title: "Michelin Star", detail: "Awarded for culinary excellence, 2016 to present." },
+  { title: "James Beard Nominee", detail: "Two-time finalist for Outstanding Restaurant." },
+  { title: "Wine Spectator", detail: "Best of Award of Excellence for the cellar." },
+  { title: "Food & Wine", detail: "Named among the year's Best New Restaurants." },
+];
+
+const reviews = [
+  {
+    quote: "Refined cooking, warm hospitality, and a menu that feels special without feeling distant.",
+    source: "City Dining Review",
+  },
+  {
+    quote: "One of the most assured tasting menus in the city - every course earns its place.",
+    source: "The Metropolitan Table",
+  },
+  {
+    quote: "The cellar alone is worth the visit; the food makes it unforgettable.",
+    source: "Vine & Fork",
+  },
+];
+
 function Home({ setActivePage }) {
   return (
     <>
@@ -318,6 +340,30 @@ function Home({ setActivePage }) {
         <InfoCard icon={<MapPin />} title="Location" text="123 Grand Avenue, New York, NY" />
         <InfoCard icon={<Clock />} title="Hours" text="Tue-Sun, 5:00 PM - 11:00 PM" />
         <InfoCard icon={<Star />} title="Awards" text="Best New Dining Room and Top Wine List finalist" />
+      </section>
+
+      <section className="page-section awards-section">
+        <div className="section-heading">
+          <Award />
+          <h2>Awards &amp; Praise</h2>
+        </div>
+        <div className="awards-grid">
+          {awards.map((award) => (
+            <article className="award-card" key={award.title}>
+              <Star size={20} />
+              <strong>{award.title}</strong>
+              <p>{award.detail}</p>
+            </article>
+          ))}
+        </div>
+        <div className="reviews-grid">
+          {reviews.map((review) => (
+            <blockquote className="review-card" key={review.source}>
+              <p>&ldquo;{review.quote}&rdquo;</p>
+              <cite>&mdash; {review.source}</cite>
+            </blockquote>
+          ))}
+        </div>
       </section>
 
       <Newsletter />
