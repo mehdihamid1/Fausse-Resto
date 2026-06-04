@@ -54,6 +54,34 @@ function formatReservationDateTime(isoString) {
   });
 }
 
+// Build a downloadable .ics calendar event for a confirmed reservation. Uses
+// floating local time (no timezone), matching the app's naive local datetimes,
+// and assumes a 2-hour seating. Returns a data: URI, or null if the slot can't
+// be parsed.
+function buildReservationIcs({ timeSlot, guestCount, tableNumber, reservationId }) {
+  const start = new Date(timeSlot);
+  if (Number.isNaN(start.getTime())) return null;
+  const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+  const fmt = (d) =>
+    `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}T${pad2(d.getHours())}${pad2(d.getMinutes())}00`;
+  const lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Cafe Fausse//Reservations//EN",
+    "BEGIN:VEVENT",
+    `UID:reservation-${reservationId}@fausse-cafe.com`,
+    `DTSTAMP:${fmt(new Date())}`,
+    `DTSTART:${fmt(start)}`,
+    `DTEND:${fmt(end)}`,
+    "SUMMARY:Cafe Fausse reservation",
+    `DESCRIPTION:Reservation #${reservationId} for ${guestCount} guest(s)\\, table #${tableNumber}. We hold tables for 15 minutes past the reservation time.`,
+    "LOCATION:123 Grand Avenue\\, New York\\, NY",
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ];
+  return `data:text/calendar;charset=utf-8,${encodeURIComponent(lines.join("\r\n"))}`;
+}
+
 const pages = [
   { id: "home", label: "Home" },
   { id: "menu", label: "Menu" },
@@ -690,6 +718,7 @@ function Reservations() {
         message: data.message,
         confirmation: {
           dateTime: formatReservationDateTime(data.timeSlot),
+          timeSlot: data.timeSlot,
           guestCount: data.guestCount,
           tableNumber: data.tableNumber,
           reservationId: data.reservationId,
@@ -868,6 +897,13 @@ function Reservations() {
                 {status.confirmation.emailSent && (
                   <p className="confirmation-footnote">A confirmation email is on its way.</p>
                 )}
+                <a
+                  className="ics-link"
+                  href={buildReservationIcs(status.confirmation)}
+                  download="cafe-fausse-reservation.ics"
+                >
+                  Add to calendar
+                </a>
               </div>
             ) : (
               <p className={`status ${status.type}`}>{status.message}</p>

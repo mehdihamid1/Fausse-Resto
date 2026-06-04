@@ -818,6 +818,18 @@ select {
   margin: 0;
 }
 
+.ics-link {
+  align-self: start;
+  border: 1px solid #1c6b35;
+  border-radius: 6px;
+  color: #1c6b35;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  text-decoration: none;
+  width: fit-content;
+}
+
 /* The success/error/confirmation boxes hardcode light greens and reds; in dark
    mode swap in deep backgrounds with light text so they sit in the theme
    (contrast stays well above AA). */
@@ -834,6 +846,11 @@ select {
 
 :root[data-theme="dark"] .reservation-confirmation dt,
 :root[data-theme="dark"] .confirmation-footnote {
+  color: #8fdfae;
+}
+
+:root[data-theme="dark"] .ics-link {
+  border-color: #8fdfae;
   color: #8fdfae;
 }
 
