@@ -446,7 +446,7 @@ function Menu() {
         <div className="chef-specials-grid">
           {chefSpecials.map((item) => (
             <article className="chef-special-card" key={item.name}>
-              <img src={item.thumb} alt={item.name} />
+              <img src={item.thumb} alt={item.name} loading="lazy" />
               <div className="chef-special-body">
                 <div className="chef-special-row">
                   <strong>{item.name}</strong>
@@ -465,7 +465,7 @@ function Menu() {
             <h3>{section.title}</h3>
             {section.items.map((item) => (
               <div className="menu-item" key={item.name}>
-                {item.thumb && <img className="menu-item-thumb" src={item.thumb} alt={item.name} />}
+                {item.thumb && <img className="menu-item-thumb" src={item.thumb} alt={item.name} loading="lazy" />}
                 <div className="menu-item-text">
                   <strong>{item.name}</strong>
                   <p>{item.description}</p>
@@ -892,6 +892,7 @@ function About() {
           <img
             src="/images/gallery-dining-room.png"
             alt="Cafe Fausse dining room"
+            loading="lazy"
           />
           <div className="about-quote">
             <Star size={18} aria-hidden="true" />
@@ -1040,7 +1041,7 @@ function Gallery() {
       <div className="gallery-strip" aria-label="Gallery quick navigation">
         {galleryItems.map((item, index) => (
           <button key={item.label} onClick={() => setLightboxIndex(index)} aria-label={`Open ${item.label}`}>
-            <img src={item.url} alt="" />
+            <img src={item.url} alt="" loading="lazy" />
           </button>
         ))}
       </div>
