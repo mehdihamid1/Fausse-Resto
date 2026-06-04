@@ -43,8 +43,9 @@ The reservation system is the core requirement and is intentionally robust:
   optional phone, future date/time only, open hours enforced
   (Tue–Sun, 5:00–10:00 PM seating; closed Monday), and 1–6 guests online
   (parties of 7+ are directed to the events line).
-- **Availability** — `GET /api/availability?timeSlot=...` reports how many of
-  the 30 tables are open; the form polls it live as the time is chosen.
+- **Availability** — `GET /api/availability/day` and `/api/availability/month`
+  report how many of the 30 tables are open per slot; the calendar and time
+  picker poll them live as the date and time are chosen.
 - **Table assignment** — a random open table (1–30) is assigned per time slot.
 - **Concurrency-safe** — a `UNIQUE (time_slot, table_number)` constraint backs
   the assignment; on a concurrent collision the backend retries with a freshly
@@ -60,7 +61,8 @@ The reservation system is the core requirement and is intentionally robust:
 |---------------|---------|
 | `GET /api/health` | Service health check |
 | `POST /api/newsletter` | Newsletter signup (validated, upserts customer) |
-| `GET /api/availability` | Open table count for a time slot |
+| `GET /api/availability/day` | Per-slot open table counts for a date |
+| `GET /api/availability/month` | Per-day bookable/closed/past flags for a month |
 | `POST /api/reservations` | Create a reservation (validation + availability) |
 | `GET /api/customers` | List customers (development/demo only) |
 | `GET /api/reservations` | List reservations (development/demo only) |
