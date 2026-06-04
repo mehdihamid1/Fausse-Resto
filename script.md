@@ -161,11 +161,15 @@ Design*). Three speakers, **~9 minutes**, screen-share + cameras on.
 - **[DO]** Click **Reservations**. Show the calendar: point out that **Mondays,
   past dates, and fully-booked days are greyed out**.
 - **[SAY]** "Reservations are the core of the brief. The calendar only lets you
-  pick valid days — we're **closed Mondays**, no past dates, and the system
-  enforces seatings on the hour from **5 to 10 PM**."
+  pick valid days — we're **closed Mondays**, no past dates, seatings on the
+  hour from **5 to 10 PM**, and bookings capped to a **90-day window**."
 - **[DO]** Pick a valid date; open the time dropdown.
 - **[SAY]** "As I choose a time, the form polls the backend for **live
   availability** and shows how many of the **30 tables** are open for that slot."
+- **[DO]** *(Optional, quick)* Set guests to 8 — the inline "parties over 6 →
+  events line" note appears; set it back to 2.
+- **[SAY]** "Online parties top out at 6; larger groups are routed to our events
+  line — validated on both the form and the backend."
 - **[DO]** Fill name `Grace Hopper`, email `grace@example.com`, leave phone
   empty (it's optional), 2 guests. Before submitting, run the **reservations**
   query in the terminal to show it's empty for that slot.
@@ -175,6 +179,9 @@ Design*). Three speakers, **~9 minutes**, screen-share + cameras on.
   **table number**, and **confirmation number**.
 - **[SAY]** "On success we get a confirmation with the **randomly assigned
   table** and a confirmation number."
+- **[DO]** Click the **"Add to calendar"** link on the confirmation card to
+  download the `.ics`.
+- **[SAY]** "The guest can drop the booking straight into their calendar."
 
 **DB effect + email**
 - **[DO]** Re-run the **reservations** and **customers** queries.
