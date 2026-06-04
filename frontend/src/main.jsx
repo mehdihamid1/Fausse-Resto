@@ -759,7 +759,7 @@ function Reservations() {
             </li>
             <li>
               <strong>Cancellations</strong>
-              <span>Plans change - please modify or cancel at least 24 hours ahead so we can offer the table to another guest.</span>
+              <span>Plans change - please call us at (212) 555-0148 at least 24 hours ahead to modify or cancel, so we can offer the table to another guest.</span>
             </li>
             <li>
               <strong>Dress code</strong>
