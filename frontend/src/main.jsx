@@ -480,7 +480,7 @@ function Menu() {
   );
 }
 
-function Calendar({ year, month, monthData, loading, selectedDate, onSelect, onChangeMonth, canGoPrev }) {
+function Calendar({ year, month, monthData, loading, selectedDate, onSelect, onChangeMonth, canGoPrev, canGoNext, maxDate }) {
   const monthLabel = new Date(year, month - 1, 1).toLocaleString(undefined, {
     month: "long",
     year: "numeric",
@@ -509,6 +509,7 @@ function Calendar({ year, month, monthData, loading, selectedDate, onSelect, onC
           type="button"
           className="calendar-nav"
           onClick={() => onChangeMonth(1)}
+          disabled={!canGoNext}
           aria-label="Next month"
         >
           <ChevronRight size={18} aria-hidden="true" />
@@ -524,21 +525,23 @@ function Calendar({ year, month, monthData, loading, selectedDate, onSelect, onC
           if (day === null) return <span key={`blank-${idx}`} className="calendar-blank" />;
           const iso = isoDate(year, month, day);
           const info = monthData ? monthData[iso] : null;
-          const bookable = Boolean(info && info.bookable);
+          const beyondMax = Boolean(maxDate && iso > maxDate);
+          const selectable = Boolean(info && info.bookable) && !beyondMax;
           const selected = iso === selectedDate;
           let title = "";
           if (info && info.closed) title = "Closed on Mondays";
           else if (info && info.past) title = "Past date";
-          else if (info && !bookable) title = "Fully booked";
+          else if (beyondMax) title = "Too far ahead to book";
+          else if (info && !info.bookable) title = "Fully booked";
           return (
             <button
               type="button"
               key={iso}
               className={`calendar-day${selected ? " selected" : ""}`}
               onClick={() => onSelect(iso)}
-              disabled={!bookable}
+              disabled={!selectable}
               aria-pressed={selected}
-              aria-label={`${monthLabel} ${day}${bookable ? "" : " (unavailable)"}`}
+              aria-label={`${monthLabel} ${day}${selectable ? "" : " (unavailable)"}`}
               title={title}
             >
               {day}
@@ -547,7 +550,7 @@ function Calendar({ year, month, monthData, loading, selectedDate, onSelect, onC
         })}
       </div>
       <p className="calendar-legend">
-        {loading ? "Loading availability…" : "Greyed dates are closed, past, or fully booked."}
+        {loading ? "Loading availability…" : "Greyed dates are closed, past, fully booked, or too far ahead."}
       </p>
     </div>
   );
@@ -556,6 +559,13 @@ function Calendar({ year, month, monthData, loading, selectedDate, onSelect, onC
 function Reservations() {
   const today = new Date();
   const currentMonth = { year: today.getFullYear(), month: today.getMonth() + 1 };
+
+  // Bookings are limited to a sensible window from today.
+  const MAX_DAYS_AHEAD = 90;
+  const maxBookable = new Date(today);
+  maxBookable.setDate(maxBookable.getDate() + MAX_DAYS_AHEAD);
+  const maxDate = isoDate(maxBookable.getFullYear(), maxBookable.getMonth() + 1, maxBookable.getDate());
+  const maxMonth = { year: maxBookable.getFullYear(), month: maxBookable.getMonth() + 1 };
 
   const [form, setForm] = useState({
     name: "",
@@ -577,6 +587,9 @@ function Reservations() {
   const canGoPrev =
     view.year > currentMonth.year ||
     (view.year === currentMonth.year && view.month > currentMonth.month);
+  const canGoNext =
+    view.year < maxMonth.year ||
+    (view.year === maxMonth.year && view.month < maxMonth.month);
 
   // Pull focus to the status region so keyboard and screen-reader users are
   // taken straight to the confirmation or the error, mirroring the lightbox's
@@ -755,6 +768,8 @@ function Reservations() {
             onSelect={selectDate}
             onChangeMonth={changeMonth}
             canGoPrev={canGoPrev}
+            canGoNext={canGoNext}
+            maxDate={maxDate}
           />
           <small className="field-hint" id="date-group-hint">Open Tue&ndash;Sun, 5:00&ndash;10:00 PM seating. Closed Mondays.</small>
         </div>

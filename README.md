@@ -40,7 +40,8 @@ from `frontend/public/images/` rather than hotlinked.
 The reservation system is the core requirement and is intentionally robust:
 
 - **Validation** (frontend + backend): required name, real email pattern,
-  optional phone, future date/time only, open hours enforced
+  optional phone, future date/time only (the reservation calendar limits
+  selection to a 90-day window), open hours enforced
   (Tue–Sun, 5:00–10:00 PM seating; closed Monday), and 1–6 guests online
   (parties of 7+ are directed to the events line).
 - **Availability** — `GET /api/availability/day` and `/api/availability/month`
