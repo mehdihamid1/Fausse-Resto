@@ -384,7 +384,7 @@ function Home({ setActivePage }) {
 
       <section className="info-grid">
         <InfoCard icon={<MapPin aria-hidden="true" />} title="Location" text="123 Grand Avenue, New York, NY" />
-        <InfoCard icon={<Clock aria-hidden="true" />} title="Hours" text="Tue-Sun, 5:00 PM - 11:00 PM" />
+        <InfoCard icon={<Clock aria-hidden="true" />} title="Hours" text="Tue-Sun, 5:00 PM - 10:00 PM" />
         <InfoCard icon={<Star aria-hidden="true" />} title="Awards" text="Best New Dining Room and Top Wine List finalist" />
       </section>
 
@@ -702,7 +702,7 @@ function Reservations() {
           <h1 className="page-title">Reservations</h1>
         </div>
         <p className="lead">
-          Choose a date and time. The system checks 30 available tables and confirms your reservation when a table is open.
+          Choose a date and time. The system checks live table availability and confirms your reservation when a table is open.
         </p>
         <div className="reservation-notes">
           <h3>Good to know</h3>
