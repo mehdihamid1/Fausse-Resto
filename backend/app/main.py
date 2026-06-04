@@ -24,7 +24,7 @@ CLOSED_WEEKDAY = 0  # Monday
 
 # Larger parties are booked as special group events by the restaurant directly
 # (see the "Good to know" panel), so the online form tops out here.
-MAX_GUESTS_PER_RESERVATION = 10
+MAX_GUESTS_PER_RESERVATION = 6
 
 # Reservation confirmation email. When SMTP_HOST is unset the confirmation is
 # logged instead of sent (so the feature is inert until SMTP is configured).
