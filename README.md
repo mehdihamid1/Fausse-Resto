@@ -65,8 +65,14 @@ The reservation system is the core requirement and is intentionally robust:
 | `GET /api/availability/day` | Per-slot open table counts for a date |
 | `GET /api/availability/month` | Per-day bookable/closed/past flags for a month |
 | `POST /api/reservations` | Create a reservation (validation + availability) |
-| `GET /api/customers` | List customers (development/demo only) |
-| `GET /api/reservations` | List reservations (development/demo only) |
+| `GET /api/customers` | List customers (demo only; returns 404 unless `ENABLE_DEMO_ENDPOINTS=true`) |
+| `GET /api/reservations` | List reservations (demo only; returns 404 unless `ENABLE_DEMO_ENDPOINTS=true`) |
+
+> The two list endpoints return customer PII (names, emails, phone numbers) and
+> are intended only for local demos. They are disabled by default and respond
+> with `404` unless `ENABLE_DEMO_ENDPOINTS=true` is set. `docker-compose.yml`
+> enables them for local development; leave the variable unset in any deployed
+> environment.
 
 ## Database
 

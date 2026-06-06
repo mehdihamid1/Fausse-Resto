@@ -26,6 +26,20 @@ CLOSED_WEEKDAY = 0  # Monday
 # (see the "Good to know" panel), so the online form tops out here.
 MAX_GUESTS_PER_RESERVATION = 6
 
+# Maximum stored lengths, mirroring the column widths in database/init.sql.
+# Inputs are checked against these so an over-long value is a clean 400 instead
+# of a 500 from the database (StringDataRightTruncation) on INSERT.
+MAX_NAME_LENGTH = 120
+MAX_EMAIL_LENGTH = 160
+MAX_PHONE_LENGTH = 40
+
+# The /api/customers and /api/reservations list endpoints expose customer PII
+# (names, emails, phone numbers) and exist only for local demos. They are off
+# unless explicitly enabled, so they are never live in a deployed environment.
+ENABLE_DEMO_ENDPOINTS = (
+    os.environ.get("ENABLE_DEMO_ENDPOINTS", "false").strip().lower() == "true"
+)
+
 # Reservation confirmation email. When SMTP_HOST is unset the confirmation is
 # logged instead of sent (so the feature is inert until SMTP is configured).
 # SMTP_USE_TLS controls whether STARTTLS is negotiated: real providers on port
@@ -45,6 +59,25 @@ def is_valid_email(email):
     return bool(EMAIL_PATTERN.match(email))
 
 
+def check_field_lengths(name, email, phone):
+    """Return an error message if any field exceeds its stored column width."""
+    if len(name) > MAX_NAME_LENGTH:
+        return f"Name must be {MAX_NAME_LENGTH} characters or fewer."
+    if len(email) > MAX_EMAIL_LENGTH:
+        return f"Email must be {MAX_EMAIL_LENGTH} characters or fewer."
+    if phone and len(phone) > MAX_PHONE_LENGTH:
+        return f"Phone number must be {MAX_PHONE_LENGTH} characters or fewer."
+    return None
+
+
+def to_naive_local(dt):
+    """Drop any timezone so the value can be compared with and stored as a
+    naive local timestamp. The time_slot column is `timestamp without time
+    zone`, and naively comparing an aware input with datetime.now() would raise
+    TypeError; we treat the wall-clock time the client sent as local."""
+    return dt.replace(tzinfo=None) if dt.tzinfo is not None else dt
+
+
 def create_app():
     app = Flask(__name__)
     CORS(app, origins=os.environ.get("CORS_ORIGINS", "*").split(","))
@@ -62,6 +95,10 @@ def create_app():
 
         if not name or not is_valid_email(email):
             return jsonify({"message": "Please enter a valid name and email."}), 400
+
+        length_error = check_field_lengths(name, email, phone)
+        if length_error:
+            return jsonify({"message": length_error}), 400
 
         with get_connection() as conn:
             with conn.cursor() as cur:
@@ -149,11 +186,11 @@ def create_app():
         guest_count = payload.get("guestCount")
         newsletter_signup = bool(payload.get("newsletterSignup"))
 
-        validation_error = validate_reservation_payload(name, email, time_slot_raw, guest_count)
+        validation_error = validate_reservation_payload(name, email, phone, time_slot_raw, guest_count)
         if validation_error:
             return jsonify({"message": validation_error}), 400
 
-        time_slot = datetime.fromisoformat(time_slot_raw)
+        time_slot = to_naive_local(datetime.fromisoformat(time_slot_raw))
         guest_count = int(guest_count)
         full_message = "That time slot is full. Please choose another time."
 
@@ -227,6 +264,8 @@ def create_app():
 
     @app.get("/api/customers")
     def list_customers():
+        if not ENABLE_DEMO_ENDPOINTS:
+            return jsonify({"message": "Not found."}), 404
         with get_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(
@@ -253,6 +292,8 @@ def create_app():
 
     @app.get("/api/reservations")
     def list_reservations():
+        if not ENABLE_DEMO_ENDPOINTS:
+            return jsonify({"message": "Not found."}), 404
         with get_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(
@@ -383,16 +424,21 @@ def compute_day_slots(day, booked_counts, now):
     return slots, closed
 
 
-def validate_reservation_payload(name, email, time_slot_raw, guest_count):
+def validate_reservation_payload(name, email, phone, time_slot_raw, guest_count):
     if not name:
         return "Please enter your name."
     if not is_valid_email(email):
         return "Please enter a valid email address."
+
+    length_error = check_field_lengths(name, email, phone)
+    if length_error:
+        return length_error
+
     if not time_slot_raw:
         return "Please select a reservation date and time."
 
     try:
-        time_slot = datetime.fromisoformat(time_slot_raw)
+        time_slot = to_naive_local(datetime.fromisoformat(time_slot_raw))
     except ValueError:
         return "Please select a valid reservation date and time."
 

@@ -34,6 +34,10 @@ services:
       - FLASK_ENV=development
       - DATABASE_URL=postgresql://cafe_user:cafe_password@db:5432/cafe_fausse
       - CORS_ORIGINS=http://fausse-cafe.com,http://localhost
+      # Exposes the /api/customers and /api/reservations list endpoints, which
+      # return customer PII. Enabled here for local demos only; leave it unset
+      # (off) in any deployed environment.
+      - ENABLE_DEMO_ENDPOINTS=true
       # Testing only: lower the table count so slots/days fill fast (1 booking
       # fills a slot, 6 fill a day). Remove or set to 30 for the real demo.
       # - TABLE_COUNT=1
