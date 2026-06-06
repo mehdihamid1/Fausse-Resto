@@ -28,8 +28,8 @@ Write-Host ''
 Write-Host '--- BEFORE rollback: customers matching test email ---'
 Invoke-Db "SELECT customer_id, customer_name, customer_email, newsletter_signup FROM customers WHERE customer_email = '$TestEmail';"
 
-Write-Host '--- BEFORE rollback: reservations for test slot ---'
-Invoke-Db "SELECT reservation_id, customer_id, time_slot, guest_count, table_number FROM reservations WHERE time_slot = '2027-01-09 19:00:00';"
+Write-Host '--- BEFORE rollback: reservations for test customer ---'
+Invoke-Db "SELECT reservation_id, customer_id, time_slot, guest_count, table_number FROM reservations WHERE customer_id IN (SELECT customer_id FROM customers WHERE customer_email = '$TestEmail');"
 Write-Host ''
 
 Write-Host '--- Action: delete test data ---'
@@ -40,8 +40,8 @@ Write-Host ''
 Write-Host '--- AFTER rollback: customers matching test email ---'
 Invoke-Db "SELECT customer_id, customer_name, customer_email, newsletter_signup FROM customers WHERE customer_email = '$TestEmail';"
 
-Write-Host '--- AFTER rollback: reservations for test slot ---'
-Invoke-Db "SELECT reservation_id, customer_id, time_slot, guest_count, table_number FROM reservations WHERE time_slot = '2027-01-09 19:00:00';"
+Write-Host '--- AFTER rollback: reservations for test customer ---'
+Invoke-Db "SELECT reservation_id, customer_id, time_slot, guest_count, table_number FROM reservations WHERE customer_id IN (SELECT customer_id FROM customers WHERE customer_email = '$TestEmail');"
 Write-Host ''
 
 Write-Host 'Rollback complete.'

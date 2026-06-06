@@ -17,9 +17,14 @@ $DbContainer = if ($env:DB_CONTAINER) { $env:DB_CONTAINER } else { 'fausse_cafe_
 $DbUser      = if ($env:DB_USER)      { $env:DB_USER }      else { 'cafe_user' }
 $DbName      = if ($env:DB_NAME)      { $env:DB_NAME }      else { 'cafe_fausse' }
 
-$TestSlot  = '2027-01-09T19:00:00'
-$TestEmail = 'test.reservation@example.com'
-$TestName  = 'Test User Two'
+# Book a slot inside the bookable window so the change is visible in the UI:
+# ~14 days out, 7:00 PM seating, skipping Monday (the restaurant is closed).
+$slot = (Get-Date).Date.AddDays(14).AddHours(19)
+while ($slot.DayOfWeek -eq 'Monday') { $slot = $slot.AddDays(1) }
+$TestSlot   = $slot.ToString('yyyy-MM-ddTHH:mm:ss')
+$TestSlotDb = $slot.ToString('yyyy-MM-dd HH:mm:ss')
+$TestEmail  = 'test.reservation@example.com'
+$TestName   = 'Test User Two'
 
 function Invoke-Db([string]$Sql) {
   docker exec $DbContainer psql -U $DbUser -d $DbName -c $Sql
@@ -28,6 +33,7 @@ function Invoke-Db([string]$Sql) {
 Write-Host '========================================='
 Write-Host ' TEST 02 — Single Reservation'
 Write-Host " BASE_URL: $BaseUrl"
+Write-Host " Slot: $TestSlotDb (book this in the UI to see availability drop)"
 Write-Host '========================================='
 Write-Host ''
 
@@ -35,7 +41,7 @@ Write-Host '--- BEFORE: customers matching test email ---'
 Invoke-Db "SELECT customer_id, customer_name, customer_email, newsletter_signup FROM customers WHERE customer_email = '$TestEmail';"
 
 Write-Host '--- BEFORE: reservations for test slot ---'
-Invoke-Db "SELECT reservation_id, customer_id, time_slot, guest_count, table_number FROM reservations WHERE time_slot = '2027-01-09 19:00:00';"
+Invoke-Db "SELECT reservation_id, customer_id, time_slot, guest_count, table_number FROM reservations WHERE time_slot = '$TestSlotDb';"
 Write-Host ''
 
 Write-Host '--- Action: POST /api/reservations ---'
@@ -66,7 +72,7 @@ Write-Host '--- AFTER: customers matching test email ---'
 Invoke-Db "SELECT customer_id, customer_name, customer_email, newsletter_signup FROM customers WHERE customer_email = '$TestEmail';"
 
 Write-Host '--- AFTER: reservations for test slot ---'
-Invoke-Db "SELECT reservation_id, customer_id, time_slot, guest_count, table_number FROM reservations WHERE time_slot = '2027-01-09 19:00:00';"
+Invoke-Db "SELECT reservation_id, customer_id, time_slot, guest_count, table_number FROM reservations WHERE time_slot = '$TestSlotDb';"
 Write-Host ''
 
 Write-Host 'PASS: Reservation created successfully.'

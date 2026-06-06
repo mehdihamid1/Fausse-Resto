@@ -26,8 +26,8 @@ echo
 echo "--- BEFORE rollback: customers matching test email ---"
 db "SELECT customer_id, customer_name, customer_email, newsletter_signup FROM customers WHERE customer_email = '$TEST_EMAIL';"
 
-echo "--- BEFORE rollback: reservations for test slot ---"
-db "SELECT reservation_id, customer_id, time_slot, guest_count, table_number FROM reservations WHERE time_slot = '2027-01-09 19:00:00';"
+echo "--- BEFORE rollback: reservations for test customer ---"
+db "SELECT reservation_id, customer_id, time_slot, guest_count, table_number FROM reservations WHERE customer_id IN (SELECT customer_id FROM customers WHERE customer_email = '$TEST_EMAIL');"
 echo
 
 echo "--- Action: delete test data ---"
@@ -38,8 +38,8 @@ echo
 echo "--- AFTER rollback: customers matching test email ---"
 db "SELECT customer_id, customer_name, customer_email, newsletter_signup FROM customers WHERE customer_email = '$TEST_EMAIL';"
 
-echo "--- AFTER rollback: reservations for test slot ---"
-db "SELECT reservation_id, customer_id, time_slot, guest_count, table_number FROM reservations WHERE time_slot = '2027-01-09 19:00:00';"
+echo "--- AFTER rollback: reservations for test customer ---"
+db "SELECT reservation_id, customer_id, time_slot, guest_count, table_number FROM reservations WHERE customer_id IN (SELECT customer_id FROM customers WHERE customer_email = '$TEST_EMAIL');"
 echo
 
 echo "Rollback complete."
