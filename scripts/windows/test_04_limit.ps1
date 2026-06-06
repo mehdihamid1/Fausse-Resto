@@ -20,9 +20,17 @@ $DbName      = if ($env:DB_NAME)      { $env:DB_NAME }      else { 'cafe_fausse'
 
 $TestSlot   = '2026-06-21T21:00:00'
 $TestSlotDb = '2026-06-21 21:00:00'
+$TestDate   = '2026-06-21'   # date portion of $TestSlot, for the availability API
+$TestTime   = '21:00'        # time portion, to pick the 9:00 PM slot out of the day
 
 function Invoke-Db([string]$Sql) {
   docker exec $DbContainer psql -U $DbUser -d $DbName -c $Sql
+}
+
+# Print availability for the 9 PM slot via GET /api/availability/day.
+function Show-Slot {
+  $day = Invoke-RestMethod -Uri "$BaseUrl/api/availability/day?date=$TestDate"
+  $day.slots | Where-Object { $_.time -eq $TestTime } | ConvertTo-Json -Depth 10
 }
 
 Write-Host '========================================='
@@ -35,8 +43,8 @@ Write-Host ''
 Write-Host '--- BEFORE: existing reservations for this slot ---'
 Invoke-Db "SELECT reservation_id, customer_id, time_slot, guest_count, table_number FROM reservations WHERE time_slot = '$TestSlotDb';"
 
-Write-Host '--- BEFORE: availability via API ---'
-Invoke-RestMethod -Uri "$BaseUrl/api/availability?timeSlot=$TestSlot" | ConvertTo-Json -Depth 10
+Write-Host '--- BEFORE: availability via API (9:00 PM slot) ---'
+Show-Slot
 Write-Host ''
 
 Write-Host '--- Action: fill all 30 tables via DB ---'
@@ -57,8 +65,8 @@ Write-Host ''
 Write-Host '--- AFTER: reservations for this slot (should be 30) ---'
 Invoke-Db "SELECT COUNT(*) AS booked_tables FROM reservations WHERE time_slot = '$TestSlotDb';"
 
-Write-Host '--- AFTER: availability via API (should show 0 available) ---'
-Invoke-RestMethod -Uri "$BaseUrl/api/availability?timeSlot=$TestSlot" | ConvertTo-Json -Depth 10
+Write-Host '--- AFTER: availability via API (9:00 PM slot, should show 0 available) ---'
+Show-Slot
 Write-Host ''
 
 Write-Host '========================================='
