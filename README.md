@@ -83,11 +83,16 @@ Two related tables (see `database/init.sql`):
 1. Add the local DNS entry (one time):
 
    ```bash
-   ./scripts/add-local-dns.sh
+   ./scripts/add-local-dns.sh           # macOS / Linux
    ```
 
-   This adds `127.0.0.1 fausse-cafe.com` to `/etc/hosts` (it will ask for your
-   login password because `/etc/hosts` is a system file).
+   ```powershell
+   .\scripts\windows\add-local-dns.ps1   # Windows (PowerShell)
+   ```
+
+   This adds `127.0.0.1 fausse-cafe.com` to the hosts file. On macOS/Linux it
+   asks for your login password (`sudo`); on Windows it prompts for
+   Administrator rights (UAC), because the hosts file is a system file.
 
 2. Build and start everything:
 
@@ -216,11 +221,46 @@ SELECT * FROM customers;
 SELECT * FROM reservations;
 ```
 
+## Scripts
+
+Every helper script ships in two forms with identical behavior: a `.sh` for
+macOS / Linux in `scripts/`, and a PowerShell 7+ `.ps1` twin in
+`scripts/windows/`. The table below maps each one to its purpose and to where it
+is used in the recorded demo run-of-show (`script.md`).
+
+| macOS / Linux (`scripts/`) | Windows (`scripts/windows/`) | Purpose | Used in `script.md` |
+|---|---|---|---|
+| `add-local-dns.sh` | `add-local-dns.ps1` | Add `127.0.0.1 fausse-cafe.com` to the hosts file (needs sudo / Administrator) | Setup checklist step 1 — one-time, before `docker compose up` |
+| `demo_reset.sh` | `demo_reset.ps1` | Clear all customers + reservations and empty the Mailpit inbox for a clean before/after | Setup step 3 and "Reset between takes" |
+| `demo_show_db.sh` | `demo_show_db.ps1` | Print the `customers` and `reservations` tables | Setup step 4 — the second terminal that reveals the DB effect (Sections 2 & 3) |
+| `test_02_reservation.sh` | `test_02_reservation.ps1` | Create one booking via the API; show DB before/after (expects HTTP 201) | Test 02 |
+| `test_02_reservation_rollback.sh` | `test_02_reservation_rollback.ps1` | Delete the Test 02 reservation + customer | Test 02 cleanup |
+| `test_03_newsletter.sh` | `test_03_newsletter.ps1` | Newsletter signup via the API; show DB before/after (expects HTTP 200) | Test 03 |
+| `test_03_newsletter_rollback.sh` | `test_03_newsletter_rollback.ps1` | Delete the Test 03 customer | Test 03 cleanup |
+| `test_04_limit.sh` | `test_04_limit.ps1` | Fill all 30 tables for a slot, then confirm a further booking is refused with HTTP 409 | Section 3 — the "full slot" / sophisticated-logic moment |
+| `test_04_limit_rollback.sh` | `test_04_limit_rollback.ps1` | Remove the 30 load-test reservations + customers | Section 3 cleanup |
+
+The demo script (`script.md`) shows the macOS/Linux commands. The Windows
+equivalents are drop-in — same names, same env-var overrides — so a Windows
+presenter can follow `script.md` verbatim by swapping each command:
+
+| Moment in `script.md` | macOS / Linux | Windows (PowerShell) |
+|---|---|---|
+| Setup — local DNS (one time) | `./scripts/add-local-dns.sh` | `.\scripts\windows\add-local-dns.ps1` |
+| Setup / reset between takes | `./scripts/demo_reset.sh` | `.\scripts\windows\demo_reset.ps1` |
+| Second terminal — show both tables | `./scripts/demo_show_db.sh` | `.\scripts\windows\demo_show_db.ps1` |
+| Section 3 — slot-full (409) demo | `./scripts/test_04_limit.sh` | `.\scripts\windows\test_04_limit.ps1` |
+| Section 3 — slot-full cleanup | `./scripts/test_04_limit_rollback.sh` | `.\scripts\windows\test_04_limit_rollback.ps1` |
+
 ## Test scenarios
 
 Four test scenarios are included. Each test script shows the database state
 **before** and **after** the action. Rollback scripts are separate so test data
 can be inspected before it is removed.
+
+The `.sh` scripts run on macOS / Linux. Windows (PowerShell 7+) equivalents
+live in `scripts/windows/` with the same names and a `.ps1` extension — every
+example below shows both.
 
 All scripts accept optional environment variables to target a different
 environment:
@@ -229,6 +269,16 @@ environment:
 BASE_URL=http://staging.fausse-cafe.com ./scripts/test_02_reservation.sh
 DB_CONTAINER=my_db ./scripts/test_04_limit.sh
 ```
+
+```powershell
+$env:BASE_URL = 'http://staging.fausse-cafe.com'; .\scripts\windows\test_02_reservation.ps1
+$env:DB_CONTAINER = 'my_db'; .\scripts\windows\test_04_limit.ps1
+```
+
+> The PowerShell scripts require **PowerShell 7+** (`pwsh`). If script execution
+> is blocked, run a script once as
+> `pwsh -ExecutionPolicy Bypass -File .\scripts\windows\demo_show_db.ps1`, or
+> allow it for your user with `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
 
 ---
 
@@ -257,6 +307,14 @@ Creates one booking via the API, verifies the response and checks the database.
 ./scripts/test_02_reservation_rollback.sh
 ```
 
+```powershell
+# Run (Windows)
+.\scripts\windows\test_02_reservation.ps1
+
+# Rollback
+.\scripts\windows\test_02_reservation_rollback.ps1
+```
+
 Expected result: HTTP 201, reservation row in `reservations`, customer row in
 `customers` with `newsletter_signup = f`.
 
@@ -272,6 +330,14 @@ Signs up a customer for the newsletter via the API and verifies the database.
 
 # Rollback
 ./scripts/test_03_newsletter_rollback.sh
+```
+
+```powershell
+# Run (Windows)
+.\scripts\windows\test_03_newsletter.ps1
+
+# Rollback
+.\scripts\windows\test_03_newsletter_rollback.ps1
 ```
 
 Expected result: HTTP 200, customer row in `customers` with
@@ -292,6 +358,14 @@ Fills all 30 tables for a time slot directly in the database, then attempts a
 ./scripts/test_04_limit_rollback.sh
 ```
 
+```powershell
+# Run (Windows)
+.\scripts\windows\test_04_limit.ps1
+
+# Rollback
+.\scripts\windows\test_04_limit_rollback.ps1
+```
+
 Expected result: availability endpoint reports `availableTables: 0`, the 31st
 booking attempt returns HTTP 409 with "That time slot is full."
 
@@ -306,12 +380,21 @@ cafe-fausse/
   frontend/             # React + Vite app (src/, public/images/)
   backend/              # Flask app (app/main.py)
   database/             # init.sql schema
-  scripts/
+  scripts/                          # macOS / Linux (.sh)
     add-local-dns.sh
+    demo_reset.sh                   demo_show_db.sh
     test_02_reservation.sh          test_02_reservation_rollback.sh
     test_03_newsletter.sh           test_03_newsletter_rollback.sh
     test_04_limit.sh                test_04_limit_rollback.sh
+    windows/                        # Windows (.ps1, PowerShell 7+) — same names
+      add-local-dns.ps1
+      demo_reset.ps1                demo_show_db.ps1
+      test_02_reservation.ps1       test_02_reservation_rollback.ps1
+      test_03_newsletter.ps1        test_03_newsletter_rollback.ps1
+      test_04_limit.ps1             test_04_limit_rollback.ps1
   README.md
+  script.md             # demo presentation run-of-show
+  project-guide.md
   ai-tooling.md
   staging.md
 ```

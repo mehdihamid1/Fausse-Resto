@@ -21,8 +21,16 @@ DB_NAME="${DB_NAME:-cafe_fausse}"
 
 TEST_SLOT="2026-06-21T21:00:00"
 TEST_SLOT_DB="2026-06-21 21:00:00"
+TEST_DATE="2026-06-21"   # date portion of $TEST_SLOT, for the availability API
+TEST_TIME="21:00"        # time portion, to pick the 9:00 PM slot out of the day
 
 db() { docker exec "$DB_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" -c "$1"; }
+
+# Print availability for the 9 PM slot via GET /api/availability/day.
+show_slot() {
+  curl -s "$BASE_URL/api/availability/day?date=$TEST_DATE" \
+    | python3 -c "import sys, json; d = json.load(sys.stdin); print(json.dumps(next((s for s in d['slots'] if s['time'] == '$TEST_TIME'), {}), indent=2))"
+}
 
 echo "========================================="
 echo " TEST 04 — Reservation Limit (30 tables)"
@@ -34,8 +42,8 @@ echo
 echo "--- BEFORE: existing reservations for this slot ---"
 db "SELECT reservation_id, customer_id, time_slot, guest_count, table_number FROM reservations WHERE time_slot = '$TEST_SLOT_DB';"
 
-echo "--- BEFORE: availability via API ---"
-curl -s "$BASE_URL/api/availability?timeSlot=$TEST_SLOT" | python3 -m json.tool
+echo "--- BEFORE: availability via API (9:00 PM slot) ---"
+show_slot
 echo
 
 echo "--- Action: fill all 30 tables via DB ---"
@@ -56,8 +64,8 @@ echo
 echo "--- AFTER: reservations for this slot (should be 30) ---"
 db "SELECT COUNT(*) AS booked_tables FROM reservations WHERE time_slot = '$TEST_SLOT_DB';"
 
-echo "--- AFTER: availability via API (should show 0 available) ---"
-curl -s "$BASE_URL/api/availability?timeSlot=$TEST_SLOT" | python3 -m json.tool
+echo "--- AFTER: availability via API (9:00 PM slot, should show 0 available) ---"
+show_slot
 echo
 
 echo "========================================="

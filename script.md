@@ -37,6 +37,11 @@ Design*). Three speakers, **~9 minutes**, screen-share + cameras on.
    ./scripts/add-local-dns.sh        # one time only — maps fausse-cafe.com
    docker compose up --build
    ```
+   On Windows (PowerShell 7+):
+   ```powershell
+   .\scripts\windows\add-local-dns.ps1   # one time only — maps fausse-cafe.com
+   docker compose up --build
+   ```
 2. **Use the realistic 30-table count for the main demo.** In
    `docker-compose.yml`, make sure the backend env has `TABLE_COUNT` **commented
    out** (defaults to 30) so availability reads "30 of 30 tables":
@@ -48,6 +53,7 @@ Design*). Three speakers, **~9 minutes**, screen-share + cameras on.
    ```bash
    ./scripts/demo_reset.sh
    ```
+   On Windows: `.\scripts\windows\demo_reset.ps1`
 4. **Open and arrange your screen** (this is the layout you'll record):
    - **Browser tab A:** `http://fausse-cafe.com` (the site)
    - **Browser tab B:** `http://localhost:8025` (Mailpit inbox)
@@ -61,13 +67,13 @@ Design*). Three speakers, **~9 minutes**, screen-share + cameras on.
      SELECT reservation_id, customer_id, time_slot, guest_count, table_number FROM reservations ORDER BY reservation_id;
      ```
      *(Or just run `./scripts/demo_show_db.sh` in a second terminal — it prints
-     both tables.)*
+     both tables. On Windows: `.\scripts\windows\demo_show_db.ps1`.)*
 5. Pick the data you'll type live (so nobody fumbles on camera):
    - Newsletter: `Ada Lovelace` / `ada@example.com`
    - Reservation: `Grace Hopper` / `grace@example.com` / phone optional / a
      future **Tue–Sun** date / a **5–10 PM** time / 2 guests.
-6. Do one full dry-run, then `./scripts/demo_reset.sh` again right before the
-   real take.
+6. Do one full dry-run, then `./scripts/demo_reset.sh` (Windows:
+   `.\scripts\windows\demo_reset.ps1`) again right before the real take.
 
 ---
 
@@ -197,8 +203,13 @@ Design*). Three speakers, **~9 minutes**, screen-share + cameras on.
   ```bash
   ./scripts/test_04_limit.sh          # fills all 30 tables for a slot, then tries one more
   ```
+  On Windows:
+  ```powershell
+  .\scripts\windows\test_04_limit.ps1   # fills all 30 tables for a slot, then tries one more
+  ```
   Show the API returning **HTTP 409** with *"That time slot is full. Please
-  choose another time."* Then `./scripts/test_04_limit_rollback.sh` to clean up.
+  choose another time."* Then `./scripts/test_04_limit_rollback.sh` (Windows:
+  `.\scripts\windows\test_04_limit_rollback.ps1`) to clean up.
 - **[SAY]** "When every one of the 30 tables for a slot is taken, the system
   refuses the booking and tells the guest to **pick another time**. Under the
   hood the table assignment is **concurrency-safe**: a unique constraint on
@@ -223,6 +234,11 @@ Design*). Three speakers, **~9 minutes**, screen-share + cameras on.
 ./scripts/demo_reset.sh     # clears customers + reservations + the Mailpit inbox
 ```
 
+On Windows:
+```powershell
+.\scripts\windows\demo_reset.ps1   # clears customers + reservations + the Mailpit inbox
+```
+
 For a totally fresh database (re-applies the schema):
 ```bash
 docker compose down -v && docker compose up --build
@@ -230,12 +246,12 @@ docker compose down -v && docker compose up --build
 
 ## Quick command reference
 
-| Need | Command |
-|---|---|
-| Start everything | `docker compose up --build` |
-| Open the DB | `docker compose exec db psql -U cafe_user -d cafe_fausse` |
-| Show both tables | `./scripts/demo_show_db.sh` |
-| Reset to clean slate | `./scripts/demo_reset.sh` |
-| Slot-full demo | `./scripts/test_04_limit.sh` then `..._rollback.sh` |
-| Site | `http://fausse-cafe.com` |
-| Mailpit inbox | `http://localhost:8025` |
+| Need | macOS / Linux | Windows (PowerShell 7+) |
+|---|---|---|
+| Start everything | `docker compose up --build` | `docker compose up --build` |
+| Open the DB | `docker compose exec db psql -U cafe_user -d cafe_fausse` | `docker compose exec db psql -U cafe_user -d cafe_fausse` |
+| Show both tables | `./scripts/demo_show_db.sh` | `.\scripts\windows\demo_show_db.ps1` |
+| Reset to clean slate | `./scripts/demo_reset.sh` | `.\scripts\windows\demo_reset.ps1` |
+| Slot-full demo | `./scripts/test_04_limit.sh` then `..._rollback.sh` | `.\scripts\windows\test_04_limit.ps1` then `..._rollback.ps1` |
+| Site | `http://fausse-cafe.com` | `http://fausse-cafe.com` |
+| Mailpit inbox | `http://localhost:8025` | `http://localhost:8025` |
