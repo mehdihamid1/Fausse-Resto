@@ -305,25 +305,52 @@ function App() {
 }
 
 function Header({ activePage, setActivePage, theme, setTheme }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  function navigate(pageId) {
+    setActivePage(pageId);
+    setMenuOpen(false);
+  }
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    function handleKey(e) {
+      if (e.key === "Escape") setMenuOpen(false);
+    }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [menuOpen]);
+
   return (
     <header className="site-header">
-      <button className="brand" onClick={() => setActivePage("home")}>
+      <button className="brand" onClick={() => navigate("home")}>
         <Utensils size={22} aria-hidden="true" />
         <span>Cafe Fausse</span>
       </button>
-      <nav aria-label="Primary navigation">
+      <nav id="primary-nav" aria-label="Primary navigation" className={menuOpen ? "open" : ""}>
         {pages.map((page) => (
           <button
             key={page.id}
             className={activePage === page.id ? "active" : ""}
             aria-current={activePage === page.id ? "page" : undefined}
-            onClick={() => setActivePage(page.id)}
+            onClick={() => navigate(page.id)}
           >
             {page.label}
           </button>
         ))}
       </nav>
-      <ThemeToggle theme={theme} setTheme={setTheme} />
+      <div className="header-controls">
+        <ThemeToggle theme={theme} setTheme={setTheme} />
+        <button
+          className="hamburger"
+          onClick={() => setMenuOpen((o) => !o)}
+          aria-label={menuOpen ? "Close navigation" : "Open navigation"}
+          aria-expanded={menuOpen}
+          aria-controls="primary-nav"
+        >
+          {menuOpen ? <X size={20} aria-hidden="true" /> : <MenuIcon size={20} aria-hidden="true" />}
+        </button>
+      </div>
     </header>
   );
 }

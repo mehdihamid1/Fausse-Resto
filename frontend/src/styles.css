@@ -169,6 +169,16 @@ nav button.active {
   padding: 6px 12px;
 }
 
+/* On desktop, header-controls is transparent so ThemeToggle stays a direct
+   flex sibling; hamburger is hidden entirely. */
+.header-controls {
+  display: contents;
+}
+
+.hamburger {
+  display: none;
+}
+
 .theme-toggle > svg {
   color: var(--color-muted);
 }
@@ -554,6 +564,7 @@ h2 {
 .newsletter form {
   display: grid;
   gap: 14px;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 label {
@@ -579,6 +590,7 @@ input {
 .field-group {
   display: grid;
   gap: 6px;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .field-label {
@@ -632,7 +644,7 @@ select {
 .calendar-weekdays,
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 4px;
 }
 
@@ -1192,21 +1204,66 @@ footer {
 }
 
 @media (max-width: 800px) {
-  .site-header,
   .newsletter,
   .split {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
+  /* Compact single-row header with hamburger drawer */
   .site-header {
-    align-items: flex-start;
-    display: grid;
-    gap: 10px;
-    padding: 18px;
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    min-height: 60px;
+    padding: 0 18px;
   }
 
+  .header-controls {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+    margin-left: auto;
+  }
+
+  .hamburger {
+    align-items: center;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    color: var(--color-text);
+    display: inline-flex;
+    height: 40px;
+    justify-content: center;
+    width: 40px;
+  }
+
+  /* Nav hidden by default; slides in as a full-width drawer below the header row */
   nav {
+    border-top: 1px solid var(--color-border);
+    display: none;
+    flex-direction: column;
+    gap: 0;
+    margin-left: 0;
+    margin-right: 0;
+    order: 3;
+    padding: 4px 0;
+    width: 100%;
+  }
+
+  nav.open {
+    display: flex;
+  }
+
+  nav button {
+    border-bottom: 1px solid var(--color-border);
     justify-content: flex-start;
+    padding: 12px 4px;
+    width: 100%;
+  }
+
+  nav button:last-child {
+    border-bottom: 0;
   }
 
   .info-grid,
@@ -1267,6 +1324,10 @@ footer {
 
   .reservation-confirmation dl {
     grid-template-columns: 1fr;
+  }
+
+  .form-panel .calendar-day {
+    min-height: 0;
   }
 
   h1 {
