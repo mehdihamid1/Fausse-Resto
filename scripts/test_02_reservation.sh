@@ -17,7 +17,19 @@ DB_CONTAINER="${DB_CONTAINER:-fausse_cafe_db}"
 DB_USER="${DB_USER:-cafe_user}"
 DB_NAME="${DB_NAME:-cafe_fausse}"
 
-TEST_SLOT="2027-01-09T19:00:00"
+# Book a slot inside the bookable window so the change is visible in the UI:
+# ~14 days out, 7:00 PM seating, skipping Monday (the restaurant is closed).
+SLOT_PAIR=$(python3 <<'PY'
+from datetime import datetime, timedelta, time
+d = (datetime.now() + timedelta(days=14)).date()
+while d.weekday() == 0:          # 0 = Monday (closed)
+    d += timedelta(days=1)
+s = datetime.combine(d, time(19))   # 7:00 PM
+print(s.strftime('%Y-%m-%dT%H:%M:%S') + '|' + s.strftime('%Y-%m-%d %H:%M:%S'))
+PY
+)
+TEST_SLOT="${SLOT_PAIR%%|*}"
+TEST_SLOT_DB="${SLOT_PAIR##*|}"
 TEST_EMAIL="test.reservation@example.com"
 TEST_NAME="Test User Two"
 TMPFILE=$(mktemp)
@@ -29,6 +41,7 @@ trap cleanup EXIT
 echo "========================================="
 echo " TEST 02 — Single Reservation"
 echo " BASE_URL: $BASE_URL"
+echo " Slot: $TEST_SLOT_DB (book this in the UI to see availability drop)"
 echo "========================================="
 echo
 
@@ -36,7 +49,7 @@ echo "--- BEFORE: customers matching test email ---"
 db "SELECT customer_id, customer_name, customer_email, newsletter_signup FROM customers WHERE customer_email = '$TEST_EMAIL';"
 
 echo "--- BEFORE: reservations for test slot ---"
-db "SELECT reservation_id, customer_id, time_slot, guest_count, table_number FROM reservations WHERE time_slot = '2027-01-09 19:00:00';"
+db "SELECT reservation_id, customer_id, time_slot, guest_count, table_number FROM reservations WHERE time_slot = '$TEST_SLOT_DB';"
 echo
 
 echo "--- Action: POST /api/reservations ---"
@@ -65,7 +78,7 @@ echo "--- AFTER: customers matching test email ---"
 db "SELECT customer_id, customer_name, customer_email, newsletter_signup FROM customers WHERE customer_email = '$TEST_EMAIL';"
 
 echo "--- AFTER: reservations for test slot ---"
-db "SELECT reservation_id, customer_id, time_slot, guest_count, table_number FROM reservations WHERE time_slot = '2027-01-09 19:00:00';"
+db "SELECT reservation_id, customer_id, time_slot, guest_count, table_number FROM reservations WHERE time_slot = '$TEST_SLOT_DB';"
 echo
 
 echo "PASS: Reservation created successfully."
