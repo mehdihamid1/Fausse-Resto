@@ -741,6 +741,14 @@ select {
   min-height: auto;
 }
 
+.newsletter-inline-status {
+  font-size: 0.85rem;
+  margin: 0;
+}
+.newsletter-inline-status.success { color: var(--color-accent); }
+.newsletter-inline-status.hint    { color: var(--color-muted); }
+.newsletter-inline-status.error   { color: var(--color-error, #c0392b); }
+
 .availability-note {
   background: var(--color-subtle);
   border-radius: 6px;

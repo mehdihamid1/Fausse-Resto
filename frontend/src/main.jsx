@@ -637,6 +637,7 @@ function Reservations() {
   const [status, setStatus] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [newsletterStatus, setNewsletterStatus] = useState(null);
   const statusRef = useRef(null);
 
   const canGoPrev =
@@ -710,6 +711,29 @@ function Reservations() {
 
   const slots = daySlots && daySlots.slots ? daySlots.slots : null;
   const selectedSlot = slots ? slots.find((s) => s.time === selectedTime) : null;
+
+  async function handleNewsletterChange(event) {
+    const checked = event.target.checked;
+    setForm((current) => ({ ...current, newsletterSignup: checked }));
+    if (!checked) {
+      setNewsletterStatus(null);
+      return;
+    }
+    if (!form.name || !form.email) {
+      setNewsletterStatus("needs-info");
+      return;
+    }
+    try {
+      const response = await fetch(`${API_BASE_URL}/newsletter`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: form.name, email: form.email }),
+      });
+      setNewsletterStatus(response.ok ? "subscribed" : "error");
+    } catch {
+      setNewsletterStatus("error");
+    }
+  }
 
   async function submitReservation(event) {
     event.preventDefault();
@@ -884,10 +908,19 @@ function Reservations() {
             name="newsletterSignup"
             type="checkbox"
             checked={form.newsletterSignup}
-            onChange={updateField}
+            onChange={handleNewsletterChange}
           />
           Join the newsletter
         </label>
+        {newsletterStatus === "subscribed" && (
+          <p className="newsletter-inline-status success">Subscribed — we&rsquo;ll be in touch!</p>
+        )}
+        {newsletterStatus === "needs-info" && (
+          <p className="newsletter-inline-status hint">Fill in your name and email above first.</p>
+        )}
+        {newsletterStatus === "error" && (
+          <p className="newsletter-inline-status error">Couldn&rsquo;t subscribe — try again.</p>
+        )}
         <button disabled={isSubmitting || !selectedDate || !selectedTime}>
           {isSubmitting ? "Checking..." : "Reserve"}
         </button>
